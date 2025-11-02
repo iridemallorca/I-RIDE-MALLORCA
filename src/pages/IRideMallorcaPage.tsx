@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Mountain, Wind, Bike, Mail, Shirt, ArrowRight, Upload, MessageCircle, Users } from "lucide-react";
 
-const LOGO = "/IRIDEMALLORCA_LOGO.svg";
+const LOGO = "/IRIDEMALLORCA_LOGO.jpg";
 
 export type ChatMsg = { room: string; user: string; content: string; ts: number };
 
