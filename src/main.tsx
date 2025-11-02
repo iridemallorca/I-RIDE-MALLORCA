@@ -1,10 +1,7 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import '@/index.css'
-import IRideMallorcaPage from '@/pages/IRideMallorcaPage'
+import React from "react";
+import { createRoot } from "react-dom/client";
+import "./styles.css";
+import IRideMallorcaPage from "./pages/IRideMallorcaPage";
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <IRideMallorcaPage />
-  </React.StrictMode>
-)
+const el = document.getElementById("root")!;
+createRoot(el).render(<IRideMallorcaPage />);
