@@ -439,8 +439,8 @@ export default function IRideMallorcaPage() {
   const [sizeOpen, setSizeOpen] = useState(false);
 
   const routes = [
-    { name: "Sa Calobra (Coll dels Reis)", icon: <Wind className="w-5 h-5" />, blurb: "10 km of switchbacks, a legendary serpentine climb.", img: "/routes/sa-calobra.svg" },
-    { name: "Cap de Formentor", icon: <MapPin className="w-5 h-5" />, blurb: "Iconic lighthouse and sweeping 360° views.", img: "/routes/formentor.svg" },
+    { name: "Sa Calobra (Coll dels Reis)", icon: <Wind className="w-5 h-5" />, blurb: "10 km of switchbacks, a legendary serpentine climb.", img: "/routes/sa-calobra.jpg" },
+    { name: "Cap de Formentor", icon: <MapPin className="w-5 h-5" />, blurb: "Iconic lighthouse and sweeping 360° views.", img: "/routes/formentor.jpg" },
     { name: "Puig Major", icon: <Mountain className="w-5 h-5" />, blurb: "Highest peak in the Balearics — long sustained ascent.", img: "/routes/puig-major.svg" },
     { name: "Coll de Sóller", icon: <Bike className="w-5 h-5" />, blurb: "Classic hairpins among orange groves.", img: "/routes/coll-soller.svg" },
     { name: "Calviá Loop", icon: <MapPin className="w-5 h-5" />, blurb: "Rolling coastal and inland roads through Calviá villages.", img: "/routes/calvia.svg" },
@@ -482,7 +482,7 @@ export default function IRideMallorcaPage() {
               I Ride Mallorca
               <span className="block text-neutral-700 text-2xl md:text-3xl mt-2 font-semibold">More than a Ride</span>
             </h1>
-            <p className="mt-6 text-lg text-neutral-700">Iconic climbs, Mediterranean light, endless switchbacks. Join the island community of cyclists and take the experience home.</p>
+            <p className="mt-6 text-lg text-neutral-700">Iconic climbs, Mediterranean light, endless switchbacks. Join Mallorca’s cycling community—take home the jersey and the memories.</p>
             <div className="mt-8 flex gap-3">
               <Button
                 className="bg-red-600 hover:bg-red-700"
@@ -502,7 +502,7 @@ export default function IRideMallorcaPage() {
               <span className="h-3 w-16 rounded-sm bg-red-600" />
               <span className="h-3 w-16 rounded-sm bg-yellow-400" />
               <span className="h-3 w-16 rounded-sm bg-red-600" />
-              <span className="text-xs text-neutral-500 ml-2">Spanish cuff stripes</span>
+              <span className="text-xs text-neutral-500 ml-2"></span>
             </div>
           </div>
           <div className="relative">
