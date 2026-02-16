@@ -3,21 +3,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Mountain, Wind, Bike, Mail, Shirt, ArrowRight, Upload, MessageCircle, Users } from "lucide-react";
 
+import type { ChatMsg, OrderDraft as OrderDraftT, TrackDTO, PartnerPostDTO } from "@/api/types";
+import { fetchChat, sendChat } from "@/api/chat";
+import { fetchUpcomingPartners, createPartnerPost } from "@/api/partner";
+import { fetchTracks, createTrack } from "@/api/track";
+import { createOrder } from "@/api/order";
+import { subscribeEmail } from "@/api/subscription";
+
+import { uploadGpx } from "@/api/gpx";
+import { apiBase } from "@/api/client";
+
 const LOGO = "/IRIDEMALLORCA_LOGO.jpg";
 
-export type ChatMsg = { room: string; user: string; content: string; ts: number };
-
 type PartnerTrack = { fileUrl: string; distanceKm: number; elevationGainM: number; svgPath?: string };
-type PartnerPost  = { id: string; name: string; whenISO: string; address: string; pace?: number; note?: string; track?: PartnerTrack | null };
+type PartnerPost = { id: string; name: string; whenISO: string; address: string; pace?: number; note?: string; track?: PartnerTrack | null };
 
 type TrackCard = { id: string; title: string; fileUrl: string; distanceKm: number; elevationGainM: number; bbox: readonly [number, number, number, number]; svgPath?: string };
-
-type OrderDraft = {
-  buyerName: string; buyerEmail: string; buyerAddress: string;
-  shippingName: string; shippingAddress: string;
-  billingName: string; billingAddress: string;
-  gender: "male" | "female"; size: "XS" | "S" | "M" | "L" | "XL";
-};
 
 const km = (n: number) => `${n.toFixed(1)} km`;
 
@@ -40,52 +41,80 @@ async function parseGPX(file: File) {
     parseFloat(p.getAttribute("lon")),
     p.getElementsByTagName("ele")[0]?.textContent ? parseFloat(p.getElementsByTagName("ele")[0].textContent!) : 0,
   ]);
+
   let dist = 0, gain = 0;
   for (let i = 1; i < coords.length; i++) {
     dist += haversineKm([coords[i - 1][0], coords[i - 1][1]], [coords[i][0], coords[i][1]]);
-    const d = coords[i][2] - coords[i - 1][2]; if (d > 0) gain += d;
+    const d = coords[i][2] - coords[i - 1][2];
+    if (d > 0) gain += d;
   }
-  const lats = coords.map(c => c[0]); const lons = coords.map(c => c[1]);
+
+  const lats = coords.map(c => c[0]);
+  const lons = coords.map(c => c[1]);
   const bbox = [Math.min(...lats), Math.min(...lons), Math.max(...lats), Math.max(...lons)] as const;
+
   return { coords, distanceKm: dist, elevationGainM: Math.round(gain), bbox };
 }
 
-const LS_TRACKS = "irm_tracks_v1";
-const LS_PARTNERS = "irm_partners_v1";
 const LS_ORDER_DRAFT = "irm_order_v1";
 
 function loadLS<T>(key: string, fallback: T): T {
   try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : fallback; } catch { return fallback; }
 }
-function saveLS<T>(key: string, val: T) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
+function saveLS<T>(key: string, val: T) { try { localStorage.setItem(key, JSON.stringify(val)); } catch { } }
 
 function RideChat({ room }: { room: string }) {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [text, setText] = useState("");
   const user = useMemo(() => `guest-${(Math.random() * 9999 | 0).toString(16)}`, []);
-  const busRef = useRef<any>(null);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !(window as any).BroadcastChannel) return;
-    busRef.current = new (window as any).BroadcastChannel("irm_chat");
-    const handler = (e: MessageEvent) => {
-      const m = e.data as ChatMsg;
-      if (m.room === room) setMessages((x) => [...x, m]);
-    };
-    busRef.current.addEventListener("message", handler);
+    let alive = true;
+
+    async function load() {
+      try {
+        const data = await fetchChat(room, 200);
+        if (!alive) return;
+
+        const mapped: ChatMsg[] = (data || []).map((m) => ({
+          room: m.room,
+          user: m.user,
+          content: m.content,
+          ts: new Date(m.ts).getTime(),
+        }));
+
+        setMessages(mapped);
+      } catch {
+        // silent
+      }
+    }
+
+    load();
+    const id = window.setInterval(load, 2500);
     return () => {
-      try { busRef.current?.removeEventListener("message", handler); } catch {}
-      try { busRef.current?.close(); } catch {}
-      busRef.current = null;
+      alive = false;
+      window.clearInterval(id);
     };
   }, [room]);
 
-  function send() {
+  async function send() {
     if (!text.trim()) return;
-    const m: ChatMsg = { room, user, content: text.trim(), ts: Date.now() };
-    try { busRef.current?.postMessage(m); } catch {}
-    setMessages((x) => [...x, m]);
+
+    const payload = { user, content: text.trim(), ts: Date.now() };
     setText("");
+
+    try {
+      const created = await sendChat(room, payload);
+      const m: ChatMsg = {
+        room: created.room,
+        user: created.user,
+        content: created.content,
+        ts: new Date(created.ts).getTime(),
+      };
+      setMessages((x) => [...x, m]);
+    } catch (e: any) {
+      alert(e?.message || "Failed to send message");
+    }
   }
 
   return (
@@ -128,13 +157,23 @@ const FileInputEn = React.forwardRef<HTMLInputElement, {
   name?: string; accept?: string; onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; buttonText?: string; noFileText?: string; inline?: boolean;
 }>(({ name, accept, onChange, buttonText = "Choose File", noFileText = "No file chosen", inline = false }, ref) => {
   const [fileName, setFileName] = useState<string>(noFileText);
-  const id = useMemo(() => `f_${Math.random().toString(36).slice(2)}` , []);
+  const id = useMemo(() => `f_${Math.random().toString(36).slice(2)}`, []);
   return (
     <div className={inline ? "flex items-center gap-3 text-sm" : "flex flex-col text-sm"}>
       <label htmlFor={id} className="inline-flex items-center gap-2 bg-neutral-100 border border-neutral-300 rounded-md px-3 py-2 cursor-pointer hover:bg-neutral-200 w-fit">
         {buttonText}
-        <input id={id} name={name} ref={ref} type="file" accept={accept} className="hidden"
-          onChange={(e) => { setFileName(e.target.files?.[0]?.name || noFileText); onChange?.(e); }} />
+        <input
+          id={id}
+          name={name}
+          ref={ref}
+          type="file"
+          accept={accept}
+          className="hidden"
+          onChange={(e) => {
+            setFileName(e.target.files?.[0]?.name || noFileText);
+            onChange?.(e);
+          }}
+        />
       </label>
       <span className={inline ? "text-neutral-600 truncate max-w-[24rem]" : "mt-1 text-neutral-600 truncate max-w-[24rem]"}>{fileName}</span>
     </div>
@@ -143,36 +182,45 @@ const FileInputEn = React.forwardRef<HTMLInputElement, {
 FileInputEn.displayName = "FileInputEn";
 
 function OrderFormModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [draft, setDraft] = useState<OrderDraft>(() => loadLS<OrderDraft>(LS_ORDER_DRAFT, {
-    buyerName: "", buyerEmail: "", buyerAddress: "",
-    shippingName: "", shippingAddress: "",
-    billingName: "", billingAddress: "",
-    gender: "male", size: "M",
-  }));
+  const [draft, setDraft] = useState<OrderDraftT>(() =>
+    loadLS<OrderDraftT>(LS_ORDER_DRAFT, {
+      buyerName: "",
+      buyerEmail: "",
+      buyerAddress: "",
+      shippingName: "",
+      shippingAddress: "",
+      shippingSameAsBuyer: true,
+      gender: "male",
+      size: "M",
+    })
+  );
+
   useEffect(() => { saveLS(LS_ORDER_DRAFT, draft); }, [draft]);
+
+  useEffect(() => {
+    if (!draft.shippingSameAsBuyer) return;
+    setDraft((prev) => ({ ...prev, shippingName: prev.buyerName, shippingAddress: prev.buyerAddress }));
+  }, [draft.shippingSameAsBuyer, draft.buyerName, draft.buyerAddress]);
+
   if (!open) return null;
 
-  function submitOrder(e: React.FormEvent) {
+  async function submitOrder(e: React.FormEvent) {
     e.preventDefault();
-    const to = "iridemallorca@gmail.com";
-    const subject = encodeURIComponent("Jersey Order — I Ride Mallorca");
-    const body = encodeURIComponent(
-`Buyer name: ${draft.buyerName}
-Buyer email: ${draft.buyerEmail}
-Buyer address: ${draft.buyerAddress}
 
-Shipping name: ${draft.shippingName}
-Shipping address: ${draft.shippingAddress}
+    const payload: OrderDraftT = draft.shippingSameAsBuyer
+      ? { ...draft, shippingName: draft.buyerName, shippingAddress: draft.buyerAddress }
+      : draft;
 
-Billing name: ${draft.billingName}
-Billing address: ${draft.billingAddress}
-
-Gender: ${draft.gender}
-Size: ${draft.size}
-`);
-    window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
-    onClose();
+    try {
+      await createOrder(payload);
+      alert("Order sent successfully!");
+      onClose();
+    } catch (e: any) {
+      alert(e?.message || "Order failed");
+    }
   }
+
+  const shippingDisabled = draft.shippingSameAsBuyer;
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4">
@@ -181,32 +229,57 @@ Size: ${draft.size}
           <h4 className="text-lg font-bold">Order Jersey</h4>
           <button onClick={onClose} className="text-sm text-neutral-500 hover:text-neutral-800">Close</button>
         </div>
+
         <form onSubmit={submitOrder} className="p-4 grid md:grid-cols-2 gap-4">
           <div className="md:col-span-2 font-semibold text-neutral-700">Buyer</div>
-          <input required placeholder="Full name" className="border rounded-xl px-3 py-2" value={draft.buyerName} onChange={e=>setDraft({...draft,buyerName:e.target.value})} />
-          <input required type="email" placeholder="Email" className="border rounded-xl px-3 py-2" value={draft.buyerEmail} onChange={e=>setDraft({...draft,buyerEmail:e.target.value})} />
-          <input required placeholder="Address" className="border rounded-xl px-3 py-2 md:col-span-2" value={draft.buyerAddress} onChange={e=>setDraft({...draft,buyerAddress:e.target.value})} />
+
+          <input required placeholder="Full name" className="border rounded-xl px-3 py-2"
+            value={draft.buyerName} onChange={(e) => setDraft({ ...draft, buyerName: e.target.value })} />
+
+          <input required type="email" placeholder="Email" className="border rounded-xl px-3 py-2"
+            value={draft.buyerEmail} onChange={(e) => setDraft({ ...draft, buyerEmail: e.target.value })} />
+
+          <input required placeholder="Address" className="border rounded-xl px-3 py-2 md:col-span-2"
+            value={draft.buyerAddress} onChange={(e) => setDraft({ ...draft, buyerAddress: e.target.value })} />
 
           <div className="md:col-span-2 font-semibold text-neutral-700 mt-2">Shipping</div>
-          <input required placeholder="Shipping name" className="border rounded-xl px-3 py-2" value={draft.shippingName} onChange={e=>setDraft({...draft,shippingName:e.target.value})} />
-          <input required placeholder="Shipping address" className="border rounded-xl px-3 py-2" value={draft.shippingAddress} onChange={e=>setDraft({...draft,shippingAddress:e.target.value})} />
 
-          <div className="md:col-span-2 font-semibold text-neutral-700 mt-2">Billing</div>
-          <input required placeholder="Billing name" className="border rounded-xl px-3 py-2" value={draft.billingName} onChange={e=>setDraft({...draft,billingName:e.target.value})} />
-          <input required placeholder="Billing address" className="border rounded-xl px-3 py-2" value={draft.billingAddress} onChange={e=>setDraft({...draft,billingAddress:e.target.value})} />
+          <label className="md:col-span-2 flex items-center gap-2 text-sm text-neutral-700">
+            <input type="checkbox" className="h-4 w-4 accent-red-600"
+              checked={draft.shippingSameAsBuyer}
+              onChange={(e) => setDraft({ ...draft, shippingSameAsBuyer: e.target.checked })} />
+            Shipping address is same as buyer
+          </label>
+
+          <input required placeholder="Shipping name"
+            className={`border rounded-xl px-3 py-2 ${shippingDisabled ? "bg-neutral-100 text-neutral-500" : ""}`}
+            value={draft.shippingName}
+            onChange={(e) => setDraft({ ...draft, shippingName: e.target.value })}
+            disabled={shippingDisabled} />
+
+          <input required placeholder="Shipping address"
+            className={`border rounded-xl px-3 py-2 ${shippingDisabled ? "bg-neutral-100 text-neutral-500" : ""}`}
+            value={draft.shippingAddress}
+            onChange={(e) => setDraft({ ...draft, shippingAddress: e.target.value })}
+            disabled={shippingDisabled} />
 
           <div className="md:col-span-2 grid grid-cols-2 gap-4 mt-2">
             <div>
               <label className="text-sm text-neutral-700 block mb-1">Gender</label>
-              <select className="border rounded-xl px-3 py-2 w-full" value={draft.gender} onChange={(e)=>setDraft({...draft,gender:e.target.value as OrderDraft["gender"]})}>
+              <select className="border rounded-xl px-3 py-2 w-full"
+                value={draft.gender}
+                onChange={(e) => setDraft({ ...draft, gender: e.target.value as OrderDraftT["gender"] })}>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
               </select>
             </div>
+
             <div>
               <label className="text-sm text-neutral-700 block mb-1">Size</label>
-              <select className="border rounded-xl px-3 py-2 w-full" value={draft.size} onChange={(e)=>setDraft({...draft,size:e.target.value as OrderDraft["size"]})}>
-                {(["XS","S","M","L","XL"] as const).map(s=> <option key={s} value={s}>{s}</option>)}
+              <select className="border rounded-xl px-3 py-2 w-full"
+                value={draft.size}
+                onChange={(e) => setDraft({ ...draft, size: e.target.value as OrderDraftT["size"] })}>
+                {(["XS", "S", "M", "L", "XL"] as const).map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
           </div>
@@ -225,9 +298,9 @@ function SizeGuideModal({ open, onClose }: { open: boolean; onClose: () => void 
   if (!open) return null;
   const rows = [
     { label: "XS", chest: "84–88", waist: "70–74", hips: "86–90" },
-    { label: "S",  chest: "88–92", waist: "74–78", hips: "90–94" },
-    { label: "M",  chest: "92–96", waist: "78–82", hips: "94–98" },
-    { label: "L",  chest: "96–101", waist: "82–87", hips: "98–103" },
+    { label: "S", chest: "88–92", waist: "74–78", hips: "90–94" },
+    { label: "M", chest: "92–96", waist: "78–82", hips: "94–98" },
+    { label: "L", chest: "96–101", waist: "82–87", hips: "98–103" },
     { label: "XL", chest: "101–106", waist: "87–92", hips: "103–108" },
   ];
   return (
@@ -270,14 +343,40 @@ function isExpired(whenISO: string) { const event = new Date(whenISO); return ne
 function formatEn(dt: string) { const d = new Date(dt); return d.toLocaleString("en-GB", { weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }); }
 
 function PartnerFinder() {
-  const [posts, setPosts] = useState<PartnerPost[]>(() => loadLS(LS_PARTNERS, [] as PartnerPost[]));
+  const [posts, setPosts] = useState<PartnerPost[]>([]);
   const [showPicker, setShowPicker] = useState(false);
   const [whenLocal, setWhenLocal] = useState("");
 
   useEffect(() => {
-    const fresh = posts.filter(p => !isExpired(p.whenISO));
-    if (fresh.length !== posts.length) { setPosts(fresh); saveLS(LS_PARTNERS, fresh); } else { saveLS(LS_PARTNERS, posts); }
-  }, [posts]);
+    let alive = true;
+    (async () => {
+      try {
+        const data = await fetchUpcomingPartners();
+        if (!alive) return;
+
+        const mapped: PartnerPost[] = (data || []).map((p: PartnerPostDTO) => ({
+          id: p.id,
+          name: p.name,
+          whenISO: p.when,
+          address: p.address || "",
+          pace: typeof p.pace === "number" ? p.pace : undefined,
+          note: p.note || "",
+          track: p.track ? {
+            fileUrl: p.track.storageUrl || "",
+            distanceKm: p.track.distanceKm,
+            elevationGainM: p.track.elevationGainM,
+            svgPath: p.track.svgPath || "",
+          } : null
+        }));
+
+        setPosts(mapped);
+      } catch {
+        // silent
+      }
+    })();
+
+    return () => { alive = false; };
+  }, []);
 
   const now = new Date();
   const upcoming = posts
@@ -288,32 +387,77 @@ function PartnerFinder() {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const f = new FormData(form);
+
     const file = f.get("track") as File | null;
-    let track: PartnerTrack | null = null;
+    let trackId: string | null = null;
+    let localTrackPreview: PartnerTrack | null = null;
+
     if (file && file.size) {
       const parsed = await parseGPX(file);
       const [minLat, minLon, maxLat, maxLon] = parsed.bbox;
-      const w = 160, h = 64;
+      const w = 600, h = 300;
+
       const svgPath = parsed.coords.map(([lat, lon]) => {
         const x = ((lon - minLon) / (maxLon - minLon || 1)) * w;
         const y = h - ((lat - minLat) / (maxLat - minLat || 1)) * h;
         return `${x.toFixed(1)},${y.toFixed(1)}`;
       }).join(" ");
-      track = { fileUrl: URL.createObjectURL(file), distanceKm: parsed.distanceKm, elevationGainM: parsed.elevationGainM, svgPath };
+
+      const up = await uploadGpx(file);
+
+      const createdTrack: TrackDTO = await createTrack({
+        title: file.name.replace(/\.(gpx|tcx)$/i, ""),
+        storageUrl: `${apiBase()}${up.downloadUrl}`,
+        distanceKm: parsed.distanceKm,
+        elevationGainM: parsed.elevationGainM,
+        svgPath,
+      });
+
+      trackId = createdTrack.id;
+
+      localTrackPreview = {
+        fileUrl: createdTrack.storageUrl || "",
+        distanceKm: createdTrack.distanceKm,
+        elevationGainM: createdTrack.elevationGainM,
+        svgPath: createdTrack.svgPath || svgPath,
+      };
     }
+
     const whenISO = whenLocal || String(f.get("when"));
     const paceVal = Number(f.get("pace") || NaN);
-    const p: PartnerPost = {
-      id: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : String(Date.now()),
-      name: String(f.get("name") || "Rider"),
-      whenISO,
-      address: String(f.get("address") || ""),
-      pace: Number.isFinite(paceVal) ? paceVal : undefined,
-      note: String(f.get("note") || ""),
-      track,
-    };
-    setPosts(x => [p, ...x]);
-    form.reset(); setWhenLocal(""); setShowPicker(false);
+
+    try {
+      const createdPost = await createPartnerPost({
+        name: String(f.get("name") || "Rider"),
+        whenISO,
+        address: String(f.get("address") || ""),
+        pace: Number.isFinite(paceVal) ? paceVal : undefined,
+        note: String(f.get("note") || ""),
+        trackId,
+      });
+
+      const newPost: PartnerPost = {
+        id: createdPost.id,
+        name: createdPost.name,
+        whenISO: createdPost.when,
+        address: createdPost.address || "",
+        pace: typeof createdPost.pace === "number" ? createdPost.pace : undefined,
+        note: createdPost.note || "",
+        track: localTrackPreview || (createdPost.track ? {
+          fileUrl: createdPost.track.storageUrl || "",
+          distanceKm: createdPost.track.distanceKm,
+          elevationGainM: createdPost.track.elevationGainM,
+          svgPath: createdPost.track.svgPath || "",
+        } : null),
+      };
+
+      setPosts((x) => [newPost, ...x]);
+      form.reset();
+      setWhenLocal("");
+      setShowPicker(false);
+    } catch (err: any) {
+      alert(err?.message || "Failed to post");
+    }
   }
 
   return (
@@ -364,12 +508,16 @@ function PartnerFinder() {
                 {p.track && (
                   <div className="mt-2 flex items-center gap-3">
                     <div className="rounded-lg border bg-neutral-50 px-2 py-1 flex items-center gap-2 text-neutral-700">
-                      <svg viewBox="0 0 160 64" className="w-40 h-10">
+                      <svg viewBox="0 0 600 300" className="w-40 h-10">
                         <polyline fill="none" stroke="currentColor" strokeWidth="2" points={p.track.svgPath} />
                       </svg>
                       <div className="text-xs whitespace-nowrap">{km(p.track.distanceKm)} • +{p.track.elevationGainM} m</div>
                     </div>
-                    <a href={p.track.fileUrl} download className="text-xs text-red-600 underline">Download GPX</a>
+                    {p.track.fileUrl ? (
+                      <a href={p.track.fileUrl} download className="text-xs text-red-600 underline">Download GPX</a>
+                    ) : (
+                      <span className="text-xs text-neutral-400">Download GPX</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -382,27 +530,76 @@ function PartnerFinder() {
 }
 
 function TrackShare() {
-  const [tracks, setTracks] = useState<TrackCard[]>(() => loadLS(LS_TRACKS, [] as TrackCard[]));
+  const [tracks, setTracks] = useState<TrackCard[]>([]);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  useEffect(() => saveLS(LS_TRACKS, tracks), [tracks]);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const data = await fetchTracks();
+        if (!alive) return;
+
+        const mapped: TrackCard[] = (data || []).map((t: TrackDTO) => ({
+          id: t.id,
+          title: t.title,
+          fileUrl: t.storageUrl || "",
+          distanceKm: t.distanceKm,
+          elevationGainM: t.elevationGainM,
+          bbox: [0, 0, 0, 0] as const,
+          svgPath: t.svgPath || "",
+        }));
+
+        setTracks(mapped);
+      } catch {
+        // silent
+      }
+    })();
+
+    return () => { alive = false; };
+  }, []);
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0]; if (!f) return;
+    const f = e.target.files?.[0];
+    if (!f) return;
+
     const parsed = await parseGPX(f);
     const [minLat, minLon, maxLat, maxLon] = parsed.bbox;
     const w = 600, h = 300;
+
     const path = parsed.coords.map(([lat, lon]) => {
       const x = ((lon - minLon) / (maxLon - minLon || 1)) * w;
       const y = h - ((lat - minLat) / (maxLat - minLat || 1)) * h;
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     }).join(" ");
-    const t: TrackCard = {
-      id: (typeof crypto !== 'undefined' && 'randomUUID' in crypto) ? crypto.randomUUID() : String(Date.now()),
-      title: f.name.replace(/\.(gpx|tcx)$/i, ""), fileUrl: URL.createObjectURL(f),
-      distanceKm: parsed.distanceKm, elevationGainM: parsed.elevationGainM, bbox: parsed.bbox, svgPath: path,
-    };
-    setTracks(x => [t, ...x]);
-    if (fileRef.current) fileRef.current.value = "";
+
+    try {
+      const up = await uploadGpx(f);
+
+      const created = await createTrack({
+        title: f.name.replace(/\.(gpx|tcx)$/i, ""),
+        storageUrl: `${apiBase()}${up.downloadUrl}`,
+        distanceKm: parsed.distanceKm,
+        elevationGainM: parsed.elevationGainM,
+        svgPath: path,
+      });
+
+      const t: TrackCard = {
+        id: created.id,
+        title: created.title,
+        fileUrl: created.storageUrl || "",
+        distanceKm: created.distanceKm,
+        elevationGainM: created.elevationGainM,
+        bbox: parsed.bbox,
+        svgPath: created.svgPath || path,
+      };
+
+      setTracks(x => [t, ...x]);
+    } catch (err: any) {
+      alert(err?.message || "Track upload failed");
+    } finally {
+      if (fileRef.current) fileRef.current.value = "";
+    }
   }
 
   return (
@@ -413,16 +610,23 @@ function TrackShare() {
       <CardContent>
         <div className="flex items-center gap-3">
           <FileInputEn ref={fileRef} accept=".gpx" onChange={onUpload} />
-          <span className="text-xs text-neutral-500">Processing happens locally in your browser. We generate a download link.</span>
+          <span className="text-xs text-neutral-500">The GPX is uploaded to Azure Blob, download works after refresh too.</span>
         </div>
+
         <div className="grid md:grid-cols-2 gap-4 mt-4">
           {tracks.map(t => (
             <div key={t.id} className="border rounded-xl p-3 bg-neutral-50">
               <div className="flex items-center justify-between">
                 <div className="font-semibold truncate pr-3">{t.title}</div>
-                <a href={t.fileUrl} download className="text-sm text-red-600 underline">Download</a>
+                {t.fileUrl ? (
+                  <a href={t.fileUrl} download className="text-sm text-red-600 underline">Download</a>
+                ) : (
+                  <span className="text-sm text-neutral-400">Download</span>
+                )}
               </div>
+
               <div className="text-sm text-neutral-600">{km(t.distanceKm)} • +{t.elevationGainM} m</div>
+
               <svg viewBox="0 0 600 300" className="w-full h-36 mt-2 bg-white rounded">
                 <polyline fill="none" stroke="currentColor" strokeWidth="2" points={t.svgPath} />
               </svg>
@@ -437,6 +641,24 @@ function TrackShare() {
 export default function IRideMallorcaPage() {
   const [orderOpen, setOrderOpen] = useState(false);
   const [sizeOpen, setSizeOpen] = useState(false);
+  const [subEmail, setSubEmail] = useState("");
+  const [subLoading, setSubLoading] = useState(false);
+
+  async function handleSubscribe(e: React.FormEvent) {
+    e.preventDefault();
+    if (!subEmail.trim()) return;
+
+    try {
+      setSubLoading(true);
+      await subscribeEmail(subEmail.trim());
+      alert("Subscribed successfully!");
+      setSubEmail("");
+    } catch (err: any) {
+      alert(err?.message || "Subscribe failed");
+    } finally {
+      setSubLoading(false);
+    }
+  }
 
   const routes = [
     { name: "Sa Calobra (Coll dels Reis)", icon: <Wind className="w-5 h-5" />, blurb: "10 km of switchbacks, a legendary serpentine climb.", img: "/routes/sa-calobra.jpg" },
@@ -484,37 +706,23 @@ export default function IRideMallorcaPage() {
             </h1>
             <p className="mt-6 text-lg text-neutral-700">Iconic climbs, Mediterranean light, endless switchbacks. Join Mallorca’s cycling community—take home the jersey and the memories.</p>
             <div className="mt-8 flex gap-3">
-              <Button
-                className="bg-red-600 hover:bg-red-700"
-                onClick={() => document.getElementById('tracks')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              >
+              <Button className="bg-red-600 hover:bg-red-700"
+                onClick={() => document.getElementById('tracks')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
                 Choose Your Route
               </Button>
-              <Button
-                variant="outline"
-                className="border-yellow-400 text-yellow-700 hover:bg-yellow-50"
-                onClick={() => document.getElementById('jersey')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              >
+              <Button variant="outline" className="border-yellow-400 text-yellow-700 hover:bg-yellow-50"
+                onClick={() => document.getElementById('jersey')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
                 Choose Your Jersey
               </Button>
             </div>
-            <div className="mt-8 flex items-center gap-2">
-              <span className="h-3 w-16 rounded-sm bg-red-600" />
-              <span className="h-3 w-16 rounded-sm bg-yellow-400" />
-              <span className="h-3 w-16 rounded-sm bg-red-600" />
-              <span className="text-xs text-neutral-500 ml-2"></span>
-            </div>
           </div>
+
           <div className="relative">
             <div className="aspect-[4/5] rounded-2xl shadow-xl bg-gradient-to-br from-neutral-900 to-neutral-700 grid place-items-center text-white">
               <div className="text-center px-6">
                 <div className="text-sm uppercase tracking-widest text-yellow-300">Official Mark</div>
                 <img src={LOGO} alt="I Ride Mallorca logo" className="mx-auto mt-3 h-40 w-auto drop-shadow" />
               </div>
-            </div>
-            <div className="absolute -bottom-6 -left-6 rotate-[-3deg] bg-white p-4 rounded-xl shadow border">
-              <div className="text-xs font-semibold">Top Segments</div>
-              <div className="text-sm">Sa Calobra • Formentor • Puig Major</div>
             </div>
           </div>
         </div>
@@ -525,6 +733,7 @@ export default function IRideMallorcaPage() {
           <h2 className="text-3xl md:text-4xl font-bold">Iconic Routes</h2>
           <div className="mt-1 h-1 w-24 bg-gradient-to-r from-red-500 to-yellow-400 rounded"></div>
           <p className="text-neutral-600 mt-2">Pick your daily dose — from hairpins to sea-side rollers.</p>
+
           <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {routes.map((r, i) => (
               <Card key={r.name} className="rounded-2xl overflow-hidden shadow-md">
@@ -554,10 +763,15 @@ export default function IRideMallorcaPage() {
               <li>Sizes S–XL</li>
             </ul>
             <div className="mt-6 flex gap-3">
-              <Button className="bg-neutral-900 hover:bg-neutral-800" onClick={()=>setOrderOpen(true)}><Shirt className="w-4 h-4 mr-2" />Shop Now</Button>
-              <Button variant="outline" className="border-yellow-400 text-yellow-700 hover:bg-yellow-50" onClick={()=>setSizeOpen(true)}>Size Guide</Button>
+              <Button className="bg-neutral-900 hover:bg-neutral-800" onClick={() => setOrderOpen(true)}>
+                <Shirt className="w-4 h-4 mr-2" />Shop Now
+              </Button>
+              <Button variant="outline" className="border-yellow-400 text-yellow-700 hover:bg-yellow-50" onClick={() => setSizeOpen(true)}>
+                Size Guide
+              </Button>
             </div>
           </div>
+
           <div className="order-1 md:order-2">
             <div className="aspect-video rounded-2xl bg-neutral-900 text-white grid place-items-center shadow-xl">
               <div className="text-center">
@@ -587,7 +801,7 @@ export default function IRideMallorcaPage() {
       </section>
 
       <section id="partners" className="py-16 md:py-24 bg-neutral-100">
-        <div className="max-w-6xl mx_auto px-4">
+        <div className="max-w-6xl mx-auto px-4">
           <h3 className="text-3xl font-bold mb-4">Partner Finder</h3>
           <div className="mt-1 h-1 w-28 bg-gradient-to-r from-red-500 to-yellow-400 rounded"></div>
           <PartnerFinder />
@@ -598,7 +812,7 @@ export default function IRideMallorcaPage() {
         <div className="max-w-6xl mx-auto px-4">
           <h3 className="text-3xl font-bold mb-4">Track Share</h3>
           <div className="mt-1 h-1 w-24 bg-gradient-to-r from-red-500 to-yellow-400 rounded"></div>
-          <p className="text-neutral-600 mb-6">Upload your favorite route so others can enjoy it too! New to the island? Discover one of our top routes and experience unforgettable adventures.</p>
+          <p className="text-neutral-600 mb-6">Upload your favorite route so others can enjoy it too!</p>
           <TrackShare />
         </div>
       </section>
@@ -608,10 +822,23 @@ export default function IRideMallorcaPage() {
           <h3 className="text-3xl font-bold">Ride with us</h3>
           <div className="mt-1 h-1 w-24 bg-gradient-to-r from-red-500 to-yellow-400 rounded mx-auto"></div>
           <p className="mt-2 text-neutral-600">Drop your email for curated route packs, local tips, and jersey drops.</p>
-          <form onSubmit={(e) => e.preventDefault()} className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-            <input type="email" required placeholder="you@domain.com" className="w-full sm:w-80 px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-red-400" />
-            <Button type="submit" className="bg-red-600 hover:bg-red-700"><Mail className="w-4 h-4 mr-2" />Subscribe</Button>
+
+          <form onSubmit={handleSubscribe} className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+            <input
+              type="email"
+              required
+              placeholder="you@domain.com"
+              className="w-full sm:w-80 px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-red-400"
+              value={subEmail}
+              onChange={(e) => setSubEmail(e.target.value)}
+              disabled={subLoading}
+            />
+            <Button type="submit" className="bg-red-600 hover:bg-red-700" disabled={subLoading}>
+              <Mail className="w-4 h-4 mr-2" />
+              {subLoading ? "Subscribing..." : "Subscribe"}
+            </Button>
           </form>
+
           <p className="text-xs text-neutral-500 mt-3">By subscribing you agree to receive emails from I Ride Mallorca. Unsubscribe anytime.</p>
         </div>
       </section>
@@ -623,8 +850,8 @@ export default function IRideMallorcaPage() {
         </div>
       </footer>
 
-      <OrderFormModal open={orderOpen} onClose={()=>setOrderOpen(false)} />
-      <SizeGuideModal open={sizeOpen} onClose={()=>setSizeOpen(false)} />
+      <OrderFormModal open={orderOpen} onClose={() => setOrderOpen(false)} />
+      <SizeGuideModal open={sizeOpen} onClose={() => setSizeOpen(false)} />
     </main>
   );
 }
