@@ -13,6 +13,8 @@ import { subscribeEmail } from "@/api/subscription";
 import { uploadGpx } from "@/api/gpx";
 import { apiBase } from "@/api/client";
 
+import JerseySlideshow from "@/components/JerseySlideshow";
+
 const LOGO = "/IRIDEMALLORCA_LOGO.jpg";
 
 type PartnerTrack = { fileUrl: string; distanceKm: number; elevationGainM: number; svgPath?: string };
@@ -750,7 +752,7 @@ export default function IRideMallorcaPage() {
       </section>
 
       <section id="jersey" className="py-16 md:py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-4">
+        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-center">
           <div className="max-w-2xl">
             <h3 className="text-3xl font-bold">Get Your Unique Jersey</h3>
             <div className="mt-1 h-1 w-56 bg-gradient-to-r from-red-500 to-yellow-400 rounded"></div>
@@ -771,6 +773,7 @@ export default function IRideMallorcaPage() {
               </Button>
             </div>
           </div>
+          <JerseySlideshow />
         </div>
       </section>
 
