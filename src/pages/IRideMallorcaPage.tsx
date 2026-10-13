@@ -485,7 +485,7 @@ function PartnerFinder() {
                 <span className="text-sm text-neutral-700">Track (GPX)</span>
                 <FileInputEn name="track" accept=".gpx" inline buttonText="Choose File" noFileText="No file chosen" />
               </div>
-              <span className="text-xs text-neutral-500 block mt-1">preview appears after posting</span>
+              <span className="text-xs text-neutral-500 block mt-1">Your route preview will appear once you publish your ride.</span>
             </div>
             <Button type="submit" className="bg-red-600 hover:bg-red-700 md:col-span-2">Post</Button>
           </form>
@@ -610,7 +610,7 @@ function TrackShare() {
       <CardContent>
         <div className="flex items-center gap-3">
           <FileInputEn ref={fileRef} accept=".gpx" onChange={onUpload} />
-          <span className="text-xs text-neutral-500">The GPX is uploaded to Azure Blob, download works after refresh too.</span>
+          <span className="text-xs text-neutral-500">Share your cycling route by uploading a GPX file.</span>
         </div>
 
         <div className="grid md:grid-cols-2 gap-4 mt-4">
@@ -750,8 +750,8 @@ export default function IRideMallorcaPage() {
       </section>
 
       <section id="jersey" className="py-16 md:py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-center">
-          <div className="order-2 md:order-1">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="max-w-2xl">
             <h3 className="text-3xl font-bold">Get Your Unique Jersey</h3>
             <div className="mt-1 h-1 w-56 bg-gradient-to-r from-red-500 to-yellow-400 rounded"></div>
             <p className="mt-3 text-neutral-600">
@@ -771,16 +771,6 @@ export default function IRideMallorcaPage() {
               </Button>
             </div>
           </div>
-
-          <div className="order-1 md:order-2">
-            <div className="aspect-video rounded-2xl bg-neutral-900 text-white grid place-items-center shadow-xl">
-              <div className="text-center">
-                <div className="uppercase text-xs tracking-widest text-yellow-300">Product Preview</div>
-                <div className="text-2xl font-extrabold mt-2">I RIDE MALLORCA — Jersey</div>
-                <div className="mt-2 text-xs opacity-80">(Add your mockup image here)</div>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -788,7 +778,7 @@ export default function IRideMallorcaPage() {
         <div className="max-w-6xl mx-auto px-4">
           <h3 className="text-3xl font-bold mb-4">Ride Chat</h3>
           <div className="mt-1 h-1 w-20 bg-gradient-to-r from-red-500 to-yellow-400 rounded"></div>
-          <p className="text-neutral-600 mb-6">Join themed rooms. (MVP uses in-tab BroadcastChannel realtime — open two tabs to test.)</p>
+          <p className="text-neutral-600 mb-6">Choose a room to discuss routes and plan rides with other cyclists.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <RideChat room="General" />
             <RideChat room="Sa Calobra" />
