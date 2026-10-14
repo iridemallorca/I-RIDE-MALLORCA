@@ -980,13 +980,13 @@ export default function IRideMallorcaPage() {
             </p>
             <div className="mt-6 space-y-5">
               <div className="border-l-4 border-yellow-400 pl-4">
-                <h4 className="font-semibold text-neutral-900">Sunset — Take the Memories Home</h4>
+                <div className="flex flex-wrap items-baseline justify-between gap-2"><h4 className="font-semibold text-neutral-900">Sunset — Take the Memories Home</h4><span className="font-bold text-neutral-900">€64.50</span></div>
                 <p className="mt-2 leading-relaxed text-neutral-600">
                   Inspired by the island's sunsets, mountains and palm-lined coast, Sunset captures the colour and spirit of Mallorca. A souvenir jersey to remember the climbs, the coastal roads and the moments that made your trip.
                 </p>
               </div>
               <div className="border-l-4 border-red-500 pl-4">
-                <h4 className="font-semibold text-neutral-900">Pink &amp; White — A More Refined Ride</h4>
+                <div className="flex flex-wrap items-baseline justify-between gap-2"><h4 className="font-semibold text-neutral-900">Pink &amp; White — A More Refined Ride</h4><span className="font-bold text-neutral-900">€87.90</span></div>
                 <p className="mt-2 leading-relaxed text-neutral-600">
                   Clean lines, subtle colours and a more professional cycling look. Our Pink and White jerseys bring a quieter expression of Mallorca to your cycling wardrobe — for riders who prefer understated design with a clear island identity.
                 </p>
