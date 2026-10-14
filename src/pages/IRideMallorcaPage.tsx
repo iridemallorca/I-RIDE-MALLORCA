@@ -973,16 +973,26 @@ export default function IRideMallorcaPage() {
       <section id="jersey" className="py-16 md:py-24 bg-white">
         <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-center">
           <div className="max-w-2xl">
-            <h3 className="text-3xl font-bold">Get Your Unique Jersey</h3>
+            <h3 className="text-3xl font-bold">Wear the Island. Ride Your Way.</h3>
             <div className="mt-1 h-1 w-56 bg-gradient-to-r from-red-500 to-yellow-400 rounded"></div>
-            <p className="mt-3 text-neutral-600">
-              Orange–Red–Grey block palette with Spanish flag cuffs. Three rear pockets, YKK zip, quick-dry fabric. UV50+ protection, cooling fabric for hot days, premium materials, and reflective stripes for safety after sunset.
+            <p className="mt-3 leading-relaxed text-neutral-600">
+              Three designs, each with its own character. Celebrate your Mallorca adventure with a colourful souvenir jersey, or choose the understated style of our Pink and White designs.
             </p>
-            <ul className="mt-4 text-neutral-700 list-disc pl-5 space-y-1">
-              <li>Premium polyester/elastane (130–150 g/m²)</li>
-              <li>Raw-cut sleeves, silicone hem</li>
-              <li>Sizes S–XL</li>
-            </ul>
+            <div className="mt-6 space-y-5">
+              <div className="border-l-4 border-yellow-400 pl-4">
+                <h4 className="font-semibold text-neutral-900">Sunset — Take the Memories Home</h4>
+                <p className="mt-2 leading-relaxed text-neutral-600">
+                  Inspired by the island's sunsets, mountains and palm-lined coast, Sunset captures the colour and spirit of Mallorca. A souvenir jersey to remember the climbs, the coastal roads and the moments that made your trip.
+                </p>
+              </div>
+              <div className="border-l-4 border-red-500 pl-4">
+                <h4 className="font-semibold text-neutral-900">Pink &amp; White — A More Refined Ride</h4>
+                <p className="mt-2 leading-relaxed text-neutral-600">
+                  Clean lines, subtle colours and a more professional cycling look. Our Pink and White jerseys bring a quieter expression of Mallorca to your cycling wardrobe — for riders who prefer understated design with a clear island identity.
+                </p>
+              </div>
+            </div>
+            <p className="mt-6 font-medium text-neutral-800">Your island. Your style. Your next ride.</p>
             <div className="mt-6 flex gap-3">
               <Button className="bg-neutral-900 hover:bg-neutral-800" onClick={() => setOrderOpen(true)}>
                 <Shirt className="w-4 h-4 mr-2" />Shop Now
