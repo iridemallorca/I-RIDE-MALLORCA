@@ -10,8 +10,7 @@ import { fetchTracks, createTrack } from "@/api/track";
 import { createOrder } from "@/api/order";
 import { subscribeEmail } from "@/api/subscription";
 
-import { uploadGpx } from "@/api/gpx";
-import { apiBase } from "@/api/client";
+import { gpxApiBase, uploadGpx } from "@/api/gpx";
 
 import JerseySlideshow from "@/components/JerseySlideshow";
 
@@ -573,7 +572,7 @@ function PartnerFinder() {
 
       const createdTrack: TrackDTO = await createTrack({
         title: file.name.replace(/\.(gpx|tcx)$/i, ""),
-        storageUrl: `${apiBase()}${up.downloadUrl}`,
+        storageUrl: `${gpxApiBase()}${up.downloadUrl}`,
         distanceKm: parsed.distanceKm,
         elevationGainM: parsed.elevationGainM,
         svgPath,
@@ -744,7 +743,7 @@ function TrackShare() {
 
       const created = await createTrack({
         title: f.name.replace(/\.(gpx|tcx)$/i, ""),
-        storageUrl: `${apiBase()}${up.downloadUrl}`,
+        storageUrl: `${gpxApiBase()}${up.downloadUrl}`,
         distanceKm: parsed.distanceKm,
         elevationGainM: parsed.elevationGainM,
         svgPath: path,
