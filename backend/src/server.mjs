@@ -12,8 +12,8 @@ for (const name of required) {
 
 const app = express();
 const port = Number(process.env.PORT || 8080);
-const containerName = process.env.GPX_CONTAINER || "gpx";
-const allowedOrigins = (process.env.CORS_ORIGINS || "https://www.iridemallorca.com")
+const containerName = process.env.GPX_CONTAINER || process.env.AZURE_STORAGE_CONTAINER || "gpx";
+const allowedOrigins = (process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || "https://www.iridemallorca.com")
   .split(",")
   .map((value) => value.trim())
   .filter(Boolean);
