@@ -93,7 +93,7 @@ app.post("/gpx/upload", upload.single("file"), async (req, res, next) => {
       metadata: { originalname: file.originalname.slice(0, 200) },
     });
 
-    res.status(201).json({ blobName, downloadUrl: publicDownloadUrl(req, blobName) });
+    res.status(201).json({ blobName, downloadUrl: `/gpx/download/${encodeURIComponent(blobName)}` });
   } catch (error) {
     next(error);
   }
