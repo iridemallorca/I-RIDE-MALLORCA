@@ -719,14 +719,49 @@ export default function IRideMallorcaPage() {
             </div>
           </div>
 
-          <div className="relative">
-            <div className="aspect-[4/5] rounded-2xl shadow-xl bg-gradient-to-br from-neutral-900 to-neutral-700 grid place-items-center text-white">
-              <div className="text-center px-6">
-                <div className="text-sm uppercase tracking-widest text-yellow-300">Official Mark</div>
-                <img src={LOGO} alt="I Ride Mallorca logo" className="mx-auto mt-3 h-40 w-auto drop-shadow" />
+          <a href="#jersey" aria-label="Explore the Mallorca jersey collection" className="group relative isolate block overflow-hidden rounded-3xl bg-slate-900 shadow-xl ring-1 ring-black/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-500">
+            <img src="/routes/andratx-pollenca.jpg" alt="" aria-hidden="true" width={750} height={420} className="absolute inset-0 -z-20 h-full w-full object-cover" />
+            <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-b from-slate-950/30 via-slate-950/65 to-slate-950/95" />
+            <div className="flex items-start justify-between gap-3 p-5 pb-12 sm:p-6 sm:pb-16">
+              <div className="text-white">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-yellow-300 sm:text-xs">Made for the ride</p>
+                <h2 className="mt-2 text-2xl font-bold leading-tight sm:text-3xl">Wear Mallorca.</h2>
+                <p className="mt-2 text-xs text-white/90 sm:text-sm">Three colours. One island.</p>
+              </div>
+              <img src={LOGO} alt="I Ride Mallorca logo" width={56} height={56} className="h-12 w-12 shrink-0 rounded-xl shadow-lg sm:h-14 sm:w-14" />
+            </div>
+            <div className="px-4 pb-5 sm:px-6 sm:pb-6">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                {[
+                  { key: "sunset", label: "Sunset", description: "Orange and blue" },
+                  { key: "pink", label: "Pink", description: "Pink" },
+                  { key: "white", label: "White", description: "White" },
+                ].map((jersey) => (
+                  <div key={jersey.key} className="min-w-0">
+                    <div className="space-y-2 rounded-2xl bg-white/15 p-1.5 ring-1 ring-white/20 sm:p-2">
+                      {["front", "back"].map((side) => (
+                        <div key={side} className="overflow-hidden rounded-xl bg-white shadow-sm">
+                          <img
+                            src={`/jerseys/${jersey.key}-${side}.png`}
+                            alt={`${jersey.description} Mallorca jersey, ${side} view`}
+                            width={400}
+                            height={500}
+                            decoding="async"
+                            className="aspect-[4/5] w-full object-contain motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <p className="mt-3 text-center text-xs font-semibold tracking-wide text-white sm:text-sm">{jersey.label}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 flex items-center justify-between gap-3 border-t border-white/20 pt-4 text-white">
+                <span className="text-[10px] uppercase tracking-widest text-white/70 sm:text-xs">The Mallorca collection</span>
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold sm:text-sm">Explore <ArrowRight aria-hidden="true" className="h-4 w-4" /></span>
               </div>
             </div>
-          </div>
+          </a>
         </div>
       </section>
 
