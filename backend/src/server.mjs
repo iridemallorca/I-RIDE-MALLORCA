@@ -13,10 +13,15 @@ for (const name of required) {
 const app = express();
 const port = Number(process.env.PORT || 8080);
 const containerName = process.env.GPX_CONTAINER || process.env.AZURE_STORAGE_CONTAINER || "gpx";
-const allowedOrigins = (process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || "https://www.iridemallorca.com")
+const configuredOrigins = (process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || "")
   .split(",")
   .map((value) => value.trim())
   .filter(Boolean);
+const allowedOrigins = new Set([
+  "https://www.iridemallorca.com",
+  "https://iridemallorca.com",
+  ...configuredOrigins,
+]);
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
