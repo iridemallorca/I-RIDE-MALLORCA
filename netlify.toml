@@ -3,6 +3,12 @@
   publish = "dist"
 
 [[redirects]]
+  from = "/gpx-api/*"
+  to = "https://iridemallorca-d6e5h4f5bvdah4hs.westeurope-01.azurewebsites.net/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
