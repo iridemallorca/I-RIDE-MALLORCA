@@ -12,6 +12,8 @@ import { subscribeEmail } from "@/api/subscription";
 
 import { gpxApiBase, uploadGpx } from "@/api/gpx";
 
+import RouteMap from "@/components/RouteMap";
+
 import JerseySlideshow from "@/components/JerseySlideshow";
 
 const ROUTE_STORIES = [
@@ -682,18 +684,12 @@ function PartnerFinder() {
                 <div className="text-sm text-neutral-600">Start: {p.address || "—"} • {typeof p.pace === 'number' ? `${p.pace} km/h` : "any pace"}</div>
                 {p.note && <div className="text-sm text-neutral-500">{p.note}</div>}
                 {p.track && (
-                  <div className="mt-2 flex items-center gap-3">
-                    <div className="rounded-lg border bg-neutral-50 px-2 py-1 flex items-center gap-2 text-neutral-700">
-                      <svg viewBox="0 0 600 300" className="w-40 h-10">
-                        <polyline fill="none" stroke="currentColor" strokeWidth="2" points={p.track.svgPath} />
-                      </svg>
-                      <div className="text-xs whitespace-nowrap">{km(p.track.distanceKm)} • +{p.track.elevationGainM} m</div>
+                  <div className="mt-2">
+                    <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+                      <span>{km(p.track.distanceKm)} • +{p.track.elevationGainM} m</span>
+                      {p.track.fileUrl && <a href={gpxDownloadUrl(p.track.fileUrl)} download className="text-red-600 underline">Download GPX</a>}
                     </div>
-                    {p.track.fileUrl ? (
-                      <a href={gpxDownloadUrl(p.track.fileUrl)} download className="text-xs text-red-600 underline">Download GPX</a>
-                    ) : (
-                      <span className="text-xs text-neutral-400">Download GPX</span>
-                    )}
+                    {p.track.fileUrl && <RouteMap url={gpxDownloadUrl(p.track.fileUrl)} title="Planned ride" />}
                   </div>
                 )}
               </div>
@@ -803,9 +799,7 @@ function TrackShare() {
 
               <div className="text-sm text-neutral-600">{km(t.distanceKm)} • +{t.elevationGainM} m</div>
 
-              <svg viewBox="0 0 600 300" className="w-full h-36 mt-2 bg-white rounded">
-                <polyline fill="none" stroke="currentColor" strokeWidth="2" points={t.svgPath} />
-              </svg>
+              {t.fileUrl && <RouteMap url={gpxDownloadUrl(t.fileUrl)} title={t.title} />}
             </div>
           ))}
         </div>
