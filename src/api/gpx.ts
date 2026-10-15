@@ -1,6 +1,6 @@
 export const GPX_API_BASE =
   (import.meta as any).env?.VITE_GPX_API_URL ||
-  "https://iridemallorca-d6e5h4f5bvdah4hs.westeurope-01.azurewebsites.net";
+  "/gpx-api";
 
 export function gpxApiBase() {
   return GPX_API_BASE.replace(/\/$/, "");
