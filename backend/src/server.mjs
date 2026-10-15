@@ -147,7 +147,7 @@ app.get("/tracks", async (req, res, next) => {
 app.post("/tracks", async (req, res, next) => {
   try {
     const { title, storageUrl, distanceKm, elevationGainM, svgPath = null } = req.body || {};
-    const blobName = new URL(String(storageUrl)).pathname.split("/").pop();
+    const blobName = String(storageUrl || "").split("?")[0].split("/").filter(Boolean).pop();
     if (!title || !safeBlobName(blobName) || !Number.isFinite(distanceKm) || !Number.isFinite(elevationGainM)) {
       return res.status(400).json({ error: "The track details are incomplete or invalid." });
     }
