@@ -185,6 +185,17 @@ type PartnerPost = { id: string; name: string; whenISO: string; address: string;
 
 type TrackCard = { id: string; title: string; fileUrl: string; distanceKm: number; elevationGainM: number; bbox: readonly [number, number, number, number]; svgPath?: string };
 
+
+function gpxDownloadUrl(storageUrl: string) {
+  // Use the existing same-origin proxy for both old and newly uploaded tracks.
+  return storageUrl
+    .replace(
+      /^https?:\/\/iridemallorca-d6e5h4f5bvdah4hs\.westeurope-01\.azurewebsites\.net(?=\/gpx\/download\/)/i,
+      "/gpx-api"
+    )
+    .replace(/^\/gpx\/download\//, "/gpx-api/gpx/download/");
+}
+
 const km = (n: number) => `${n.toFixed(1)} km`;
 
 function haversineKm(a: [number, number], b: [number, number]) {
@@ -679,7 +690,7 @@ function PartnerFinder() {
                       <div className="text-xs whitespace-nowrap">{km(p.track.distanceKm)} • +{p.track.elevationGainM} m</div>
                     </div>
                     {p.track.fileUrl ? (
-                      <a href={p.track.fileUrl} download className="text-xs text-red-600 underline">Download GPX</a>
+                      <a href={gpxDownloadUrl(p.track.fileUrl)} download className="text-xs text-red-600 underline">Download GPX</a>
                     ) : (
                       <span className="text-xs text-neutral-400">Download GPX</span>
                     )}
@@ -784,7 +795,7 @@ function TrackShare() {
               <div className="flex items-center justify-between">
                 <div className="font-semibold truncate pr-3">{t.title}</div>
                 {t.fileUrl ? (
-                  <a href={t.fileUrl} download className="text-sm text-red-600 underline">Download</a>
+                  <a href={gpxDownloadUrl(t.fileUrl)} download className="text-sm text-red-600 underline">Download</a>
                 ) : (
                   <span className="text-sm text-neutral-400">Download</span>
                 )}
