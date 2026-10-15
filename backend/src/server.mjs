@@ -174,10 +174,23 @@ app.post("/tracks", async (req, res, next) => {
   }
 });
 
-app.use((error, _req, res, _next) => {
+app.use((error, req, res, _next) => {
   if (error instanceof multer.MulterError) return res.status(400).json({ error: "The GPX upload must be smaller than 10 MB." });
   console.error(error);
-  res.status(500).json({ error: "The GPX service could not complete this request." });
+
+  const operation = req.path === "/gpx/upload"
+    ? "upload"
+    : req.path === "/tracks"
+      ? "track-save"
+      : "request";
+
+  const message = operation === "upload"
+    ? "The GPX file could not be uploaded to route storage."
+    : operation === "track-save"
+      ? "The GPX file was uploaded, but the route details could not be saved."
+      : "The GPX service could not complete this request.";
+
+  res.status(500).json({ error: message });
 });
 
 initialise()
