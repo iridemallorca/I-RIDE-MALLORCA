@@ -542,7 +542,14 @@ function PartnerFinder() {
 
 function TrackShare() {
   const [tracks, setTracks] = useState<TrackCard[]>([]);
+  const [query, setQuery] = useState("");
   const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const matchingTracks = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase();
+    if (!normalizedQuery) return tracks;
+    return tracks.filter((track) => track.title.toLocaleLowerCase().includes(normalizedQuery));
+  }, [query, tracks]);
 
   useEffect(() => {
     let alive = true;
@@ -616,16 +623,27 @@ function TrackShare() {
   return (
     <Card className="rounded-2xl">
       <CardHeader>
-        <CardTitle><Upload className="inline w-5 h-5 mr-2 text-red-600" /> Track Share (GPX)</CardTitle>
+        <CardTitle><Upload className="inline w-5 h-5 mr-2 text-red-600" /> Share a route with the community</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-3">
-          <FileInputEn ref={fileRef} accept=".gpx" onChange={onUpload} />
-          <span className="text-xs text-neutral-500">Share your cycling route by uploading a GPX file.</span>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <FileInputEn ref={fileRef} accept=".gpx,application/gpx+xml" onChange={onUpload} buttonText="Upload GPS file" />
+          <span className="text-sm text-neutral-600">Share your favorite cycling route by uploading a GPS file.</span>
         </div>
 
+        <label className="mt-6 block">
+          <span className="sr-only">Search shared routes</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search shared routes"
+            className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-red-500 focus:ring-2 focus:ring-red-200"
+          />
+        </label>
+
         <div className="grid md:grid-cols-2 gap-4 mt-4">
-          {tracks.map(t => (
+          {matchingTracks.map(t => (
             <div key={t.id} className="border rounded-xl p-3 bg-neutral-50">
               <div className="flex items-center justify-between">
                 <div className="font-semibold truncate pr-3">{t.title}</div>
@@ -642,6 +660,8 @@ function TrackShare() {
             </div>
           ))}
         </div>
+        {tracks.length === 0 && <p className="mt-4 rounded-xl bg-yellow-50 p-4 text-sm text-neutral-700">Be the first to add a route and help fellow riders discover Mallorca.</p>}
+        {tracks.length > 0 && matchingTracks.length === 0 && <p className="mt-4 text-sm text-neutral-600">No shared routes match that search yet.</p>}
       </CardContent>
     </Card>
   );
@@ -887,7 +907,7 @@ export default function IRideMallorcaPage() {
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold mb-4">Track Share</h2>
           <div className="mt-1 h-1 w-24 bg-gradient-to-r from-red-500 to-yellow-400 rounded"></div>
-          <p className="text-neutral-600 mb-6">Upload your favorite route so others can enjoy it too!</p>
+          <p className="text-neutral-600 mb-6">A shared library for the Mallorca cycling community. Find a route from another rider or add the roads you loved.</p>
           <TrackShare />
         </div>
       </section>
