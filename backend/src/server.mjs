@@ -54,6 +54,28 @@ function safeBlobName(value) {
   return /^[a-f0-9-]{36}\.gpx$/i.test(value || "");
 }
 
+function filenameMetadata(filename) {
+  // Azure Blob metadata is restricted to ASCII. Keep the original filename
+  // encoded so routes named with accents (for example, Deià) can be uploaded.
+  return encodeURIComponent(filename).slice(0, 200);
+}
+
+function filenameFromMetadata(value) {
+  if (!value) return "route.gpx";
+  try { return decodeURIComponent(value); } catch { return value; }
+}
+
+function contentDisposition(filename) {
+  const safeFilename = filename
+    .normalize("NFKD")
+    .replace(/[^\x20-\x7E]/g, "")
+    .replace(/[^\w. ()-]/g, "_")
+    .replace(/"/g, "")
+    .slice(0, 180) || "route.gpx";
+  const encodedFilename = encodeURIComponent(filename).replace(/[!'()*]/g, (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`);
+  return `attachment; filename="${safeFilename}"; filename*=UTF-8''${encodedFilename}`;
+}
+
 async function initialise() {
   await container.createIfNotExists();
   await pool.query(`
@@ -93,9 +115,9 @@ app.post("/gpx/upload", upload.single("file"), async (req, res, next) => {
     await client.uploadData(file.buffer, {
       blobHTTPHeaders: {
         blobContentType: "application/gpx+xml",
-        blobContentDisposition: `attachment; filename="${file.originalname.replace(/["\\]/g, "")}"`,
+        blobContentDisposition: contentDisposition(file.originalname),
       },
-      metadata: { originalname: file.originalname.slice(0, 200) },
+      metadata: { originalname: filenameMetadata(file.originalname) },
     });
 
     res.status(201).json({ blobName, downloadUrl: `/gpx/download/${encodeURIComponent(blobName)}` });
@@ -113,9 +135,9 @@ app.get("/gpx/download/:blobName", async (req, res, next) => {
     const response = await client.download();
     if (!response.readableStreamBody) return res.status(404).end();
 
-    const originalName = (await client.getProperties()).metadata?.originalname || "route.gpx";
+    const originalName = filenameFromMetadata((await client.getProperties()).metadata?.originalname);
     res.setHeader("Content-Type", "application/gpx+xml");
-    res.setHeader("Content-Disposition", `attachment; filename="${originalName.replace(/["\\]/g, "")}"`);
+    res.setHeader("Content-Disposition", contentDisposition(originalName));
     response.readableStreamBody.pipe(res);
   } catch (error) {
     if (error.statusCode === 404) return res.status(404).end();
