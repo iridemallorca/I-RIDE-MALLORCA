@@ -55,13 +55,16 @@ function safeBlobName(value) {
 }
 
 function filenameMetadata(filename) {
-  // Azure Blob metadata is restricted to ASCII. Keep the original filename
-  // encoded so routes named with accents (for example, Deià) can be uploaded.
-  return encodeURIComponent(filename).slice(0, 200);
+  // Azure Blob rejects URL-encoded metadata (the % character is not allowed).
+  // Hex uses only letters and numbers, so accented names such as Deià remain safe.
+  return `utf8_${Buffer.from(filename, "utf8").toString("hex")}`;
 }
 
 function filenameFromMetadata(value) {
   if (!value) return "route.gpx";
+  if (value.startsWith("utf8_")) {
+    try { return Buffer.from(value.slice(5), "hex").toString("utf8"); } catch { return "route.gpx"; }
+  }
   try { return decodeURIComponent(value); } catch { return value; }
 }
 
