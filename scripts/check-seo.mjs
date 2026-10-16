@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, stat, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 const origin = 'https://www.iridemallorca.com';
 const sitemap=await readFile('dist/sitemap.xml','utf8');
@@ -34,3 +34,9 @@ const notFound=await readFile('dist/404.html','utf8');assert.ok(notFound.include
 const config=await readFile('netlify.toml','utf8');assert.ok(config.includes('status = 404'));assert.ok(config.includes('/gpx-api/*'),'Existing GPX proxy preserved');
 const robots=await readFile('dist/robots.txt','utf8');assert.ok(robots.includes(`Sitemap: ${origin}/sitemap.xml`));
 console.log(`SEO checks passed: ${urls.length} prerendered pages, unique metadata, structured data, internal links, images, GPX links, sitemap and 404 configuration.`);
+
+for (const directory of ['dist/routes', 'dist/jerseys']) {
+ for (const name of await readdir(directory)) {
+  if (name.endsWith('.webp')) assert.ok((await stat(`${directory}/${name}`)).size > 1000, `Empty or truncated image: ${name}`);
+ }
+}

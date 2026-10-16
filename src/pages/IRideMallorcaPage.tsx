@@ -750,7 +750,7 @@ export default function IRideMallorcaPage() {
                       {["front", "back"].map((side) => (
                         <div key={side} className="overflow-hidden rounded-xl bg-white shadow-sm">
                           <img
-                            src={`/jerseys/${jersey.key}-${side}.png`}
+                            src={`/jerseys/${jersey.key}-${side}.webp`}
                             alt={`${jersey.description} Mallorca jersey, ${side} view`}
                             width={400}
                             height={500}
