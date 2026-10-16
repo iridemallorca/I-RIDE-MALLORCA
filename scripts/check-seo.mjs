@@ -27,12 +27,14 @@ for(const url of urls){
   assert.ok((await stat(file).catch(()=>null))?.isFile(),`${path}: broken local reference ${target}`);
  }
 }
-const coll=await readFile('dist/routes/coll-de-soller/index.html','utf8');assert.ok(coll.includes('Do not use it for turn-by-turn navigation'));
+const coll=await readFile('dist/routes/coll-de-soller/index.html','utf8');assert.ok(coll.includes('21.4 km'));assert.ok(coll.includes('Approximately 534 m'));assert.ok(coll.includes('Tomvan on Wikiloc'));assert.ok(!coll.includes('Do not use it for turn-by-turn navigation'));
 const home=await readFile('dist/index.html','utf8');for(const slug of ['sa-calobra','cap-de-formentor','puig-major','coll-de-soller','andratx-pollenca','calvia-loop'])assert.ok(home.includes(`/routes/${slug}/`));
 for(const slug of ['sunset','pink','white'])assert.ok(home.includes(`/jerseys/${slug}/`));
 const notFound=await readFile('dist/404.html','utf8');assert.ok(notFound.includes('noindex,follow'));
 const config=await readFile('netlify.toml','utf8');assert.ok(config.includes('status = 404'));assert.ok(config.includes('/gpx-api/*'),'Existing GPX proxy preserved');
 const robots=await readFile('dist/robots.txt','utf8');assert.ok(robots.includes(`Sitemap: ${origin}/sitemap.xml`));
+for(const path of ['/legal/','/privacy/','/cookies/','/ordering/']){const html=await readFile(resolve('dist','.'+path,'index.html'),'utf8');assert.ok(html.includes('noindex,follow'),`${path}: legal page should not be indexed`);}
+for(const path of ['/legal/','/privacy/','/ordering/']){const html=await readFile(resolve('dist','.'+path,'index.html'),'utf8');assert.ok(html.includes('EMS International Kft.'),`${path}: brand owner missing`);}
 console.log(`SEO checks passed: ${urls.length} prerendered pages, unique metadata, structured data, internal links, images, GPX links, sitemap and 404 configuration.`);
 
 for (const directory of ['dist/routes', 'dist/jerseys']) {

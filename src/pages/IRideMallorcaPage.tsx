@@ -259,12 +259,13 @@ export function OrderFormModal({ open, onClose, product }: { open: boolean; onCl
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4">
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl">
         <div className="p-4 border-b flex items-center justify-between">
-          <h4 className="text-lg font-bold">Order Jersey</h4>
+          <h4 className="text-lg font-bold">Send a jersey order request</h4>
           <button onClick={onClose} className="text-sm text-neutral-500 hover:text-neutral-800">Close</button>
         </div>
 
         <form onSubmit={submitOrder} className="p-4 grid md:grid-cols-2 gap-4">
           {product && <div className="md:col-span-2 rounded-xl bg-yellow-50 p-3 text-sm text-neutral-800"><strong>{product.name}</strong> · {product.colour} · €{product.price.toFixed(2)}</div>}
+          <p className="md:col-span-2 rounded-xl border border-neutral-200 bg-neutral-50 p-3 text-sm leading-relaxed text-neutral-700">This is an order request, not a payment or a final order. We’ll contact you personally by email to confirm availability, size, delivery options, the final total and payment.</p>
           <div className="md:col-span-2 font-semibold text-neutral-700">Buyer</div>
 
           <input required name="buyerName" placeholder="Full name" className="border rounded-xl px-3 py-2"
@@ -321,7 +322,7 @@ export function OrderFormModal({ open, onClose, product }: { open: boolean; onCl
           {submitError && <p role="alert" className="md:col-span-2 rounded-xl bg-red-50 p-3 text-sm text-red-800">{submitError}</p>}
           <div className="md:col-span-2 flex items-center justify-end gap-3 mt-2">
             <Button type="button" variant="outline" onClick={onClose} disabled={sending}>Cancel</Button>
-            <Button type="submit" className="bg-red-600 hover:bg-red-700" disabled={sending}>{sending ? "Sending order…" : "Send Order"}</Button>
+            <Button type="submit" className="bg-red-600 hover:bg-red-700" disabled={sending}>{sending ? "Sending request…" : "Send order request"}</Button>
           </div>
         </form>
       </div>
@@ -726,7 +727,7 @@ export default function IRideMallorcaPage() {
     { story: ROUTE_STORIES[0], name: "Sa Calobra (Coll dels Reis)", icon: <Wind className="w-5 h-5" />, blurb: "10 km of switchbacks, a legendary serpentine climb.", img: "/routes/sa-calobra.webp", gpx: "/routes/gpx/sa-calobra.gpx", schematic: false },
     { story: ROUTE_STORIES[1], name: "Cap de Formentor", icon: <MapPin className="w-5 h-5" />, blurb: "Iconic lighthouse and sweeping 360° views.", img: "/routes/formentor.webp", gpx: "/routes/gpx/cap-de-formentor.gpx", schematic: false },
     { story: ROUTE_STORIES[2], name: "Puig Major", icon: <Mountain className="w-5 h-5" />, blurb: "Highest peak in the Balearics — long sustained ascent.", img: "/routes/puig-major.webp", gpx: "/routes/gpx/puig-major.gpx", schematic: false },
-    { story: ROUTE_STORIES[3], name: "Coll de Sóller", icon: <Bike className="w-5 h-5" />, blurb: "Classic hairpins among orange groves.", img: "/routes/coll-soller.webp", gpx: "/routes/gpx/coll-de-soller.gpx", schematic: true },
+    { story: ROUTE_STORIES[3], name: "Coll de Sóller", icon: <Bike className="w-5 h-5" />, blurb: "Classic hairpins, climbed and descended from Port de Sóller.", img: "/routes/coll-soller.webp", gpx: "/routes/gpx/coll-de-soller.gpx", schematic: false },
     { story: ROUTE_STORIES[4], name: "Andratx → Port de Pollença", icon: <ArrowRight className="w-5 h-5" />, blurb: "West coast traverse with panoramic sea views.", img: "/routes/andratx-pollenca.webp", gpx: "/routes/gpx/andratx-pollenca.gpx", schematic: false },
     { story: ROUTE_STORIES[5], name: "Calvià Loop", icon: <MapPin className="w-5 h-5" />, blurb: "Rolling coastal and inland roads through Calviá villages.", img: "/routes/calvia.webp", gpx: "/routes/gpx/calvia-loop.gpx", schematic: false },
   ];
@@ -1008,7 +1009,7 @@ export default function IRideMallorcaPage() {
       <footer className="py-8 border-t bg-white">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-sm text-neutral-600">© {new Date().getFullYear()} I Ride Mallorca — <span className="italic">More than a Ride</span></div>
-          <nav aria-label="Footer navigation" className="flex flex-wrap gap-4 text-sm text-neutral-600"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About &amp; route information</a></nav>
+          <nav aria-label="Footer navigation" className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-neutral-600"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About</a><a href="/legal/">Legal</a><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a><a href="/ordering/">Ordering &amp; returns</a></nav>
         </div>
       </footer>
 

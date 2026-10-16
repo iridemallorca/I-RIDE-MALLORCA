@@ -9,7 +9,7 @@ export const products = [
 export const routePath = (slug: string) => `/routes/${slug}/`;
 export const productPath = (slug: string) => `/jerseys/${slug}/`;
 export const faq = [
-  { question: 'Can I download the Mallorca cycling routes for free?', answer: 'Yes. Each Iconic Routes guide links to a free GPX download. Check the route type and file notes first: Coll de Sóller currently has a schematic file, and the extra Sa Calobra ascent-only file contains just three waypoints.' },
+  { question: 'Can I download the Mallorca cycling routes for free?', answer: 'Yes. Each Iconic Routes guide links to a free GPX download. Check the route type and file notes first: Coll de Sóller is an up-and-down mountain climb, and the extra Sa Calobra ascent-only file contains just three waypoints.' },
   { question: 'Are the route distances and climbing totals exact?', answer: 'No. Published figures are approximate calculations from the supplied GPX track points. Recording quality, elevation noise and route start or finish choices can change the figures shown by your cycling computer.' },
   { question: 'Is the Puig Major route a ride to the mountain summit?', answer: 'No. The GPX follows the public road from Sóller towards the Monnàber tunnel area. It does not provide access to the restricted summit.' },
   { question: 'Where does the Andratx route finish?', answer: 'The downloadable 114.0 km route finishes in Port de Pollença, not in central Pollença. It is a point-to-point ride, so arrange your return separately.' },
