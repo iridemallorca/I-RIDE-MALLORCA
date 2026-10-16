@@ -2,6 +2,7 @@ import cors from "cors";
 import crypto from "node:crypto";
 import express from "express";
 import multer from "multer";
+import nodemailer from "nodemailer";
 import pg from "pg";
 import { BlobServiceClient } from "@azure/storage-blob";
 
@@ -30,6 +31,16 @@ const pool = new pg.Pool({
 
 const blobService = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
 const container = blobService.getContainerClient(containerName);
+const ownerEmail = process.env.OWNER_EMAIL || "iridemallorca@gmail.com";
+const mailFrom = process.env.EMAIL_FROM || process.env.SMTP_USER || ownerEmail;
+const mailer = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS
+  ? nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT || 587),
+      secure: process.env.SMTP_SECURE === "true",
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    })
+  : null;
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024, files: 1 },
@@ -123,6 +134,36 @@ function cleanOrderText(value, limit) {
   return String(value || "").trim().slice(0, limit);
 }
 
+async function sendOrderNotification(order) {
+  if (!mailer) throw new Error("Order email is not configured.");
+
+  const subject = `New I Ride Mallorca jersey order — ${order.productName}`;
+  const text = [
+    "A new jersey order request has been received.",
+    "",
+    `Jersey: ${order.productName}`,
+    `Colour: ${order.productColour}`,
+    `Price: €${order.productPrice.toFixed(2)}`,
+    `Size: ${order.size}`,
+    `Gender: ${order.gender}`,
+    "",
+    `Buyer: ${order.buyerName}`,
+    `Email: ${order.buyerEmail}`,
+    `Buyer address: ${order.buyerAddress}`,
+    "",
+    `Shipping name: ${order.shippingName}`,
+    `Shipping address: ${order.shippingAddress}`,
+  ].join("\n");
+
+  await mailer.sendMail({
+    from: mailFrom,
+    to: ownerEmail,
+    replyTo: order.buyerEmail,
+    subject,
+    text,
+  });
+}
+
 app.post("/orders", async (req, res, next) => {
   try {
     const body = req.body || {};
@@ -146,6 +187,12 @@ app.post("/orders", async (req, res, next) => {
       return res.status(400).json({ error: "Please complete all required order details." });
     }
 
+    const order = {
+      productName, productColour, productPrice, buyerName, buyerEmail, buyerAddress,
+      shippingName, shippingAddress, gender, size,
+    };
+    await sendOrderNotification(order);
+
     const id = crypto.randomUUID();
     await pool.query(`
       INSERT INTO jersey_orders (
@@ -153,8 +200,8 @@ app.post("/orders", async (req, res, next) => {
         buyer_address, shipping_name, shipping_address, gender, jersey_size
       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
     `, [
-      id, productName, productColour, productPrice, buyerName, buyerEmail,
-      buyerAddress, shippingName, shippingAddress, gender, size,
+      id, order.productName, order.productColour, order.productPrice, order.buyerName, order.buyerEmail,
+      order.buyerAddress, order.shippingName, order.shippingAddress, order.gender, order.size,
     ]);
 
     res.status(201).json({ id, message: "Order request received." });
