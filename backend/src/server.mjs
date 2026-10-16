@@ -92,12 +92,72 @@ async function initialise() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS jersey_orders (
+      id UUID PRIMARY KEY,
+      product_name TEXT NOT NULL,
+      product_colour TEXT NOT NULL,
+      product_price NUMERIC(10,2) NOT NULL,
+      buyer_name TEXT NOT NULL,
+      buyer_email TEXT NOT NULL,
+      buyer_address TEXT NOT NULL,
+      shipping_name TEXT NOT NULL,
+      shipping_address TEXT NOT NULL,
+      gender TEXT NOT NULL,
+      jersey_size TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
 }
 
 app.get("/health", async (_req, res, next) => {
   try {
     await pool.query("SELECT 1");
     res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
+function cleanOrderText(value, limit) {
+  return String(value || "").trim().slice(0, limit);
+}
+
+app.post("/orders", async (req, res, next) => {
+  try {
+    const body = req.body || {};
+    const productName = cleanOrderText(body.productName, 140);
+    const productColour = cleanOrderText(body.productColour, 80);
+    const productPrice = Number(body.productPrice);
+    const buyerName = cleanOrderText(body.buyerName, 140);
+    const buyerEmail = cleanOrderText(body.buyerEmail, 254).toLowerCase();
+    const buyerAddress = cleanOrderText(body.buyerAddress, 500);
+    const shippingName = cleanOrderText(body.shippingName, 140);
+    const shippingAddress = cleanOrderText(body.shippingAddress, 500);
+    const gender = cleanOrderText(body.gender, 20);
+    const size = cleanOrderText(body.size, 10);
+
+    if (
+      !productName || !productColour || !Number.isFinite(productPrice) || productPrice <= 0 ||
+      !buyerName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail) ||
+      !buyerAddress || !shippingName || !shippingAddress ||
+      !["male", "female"].includes(gender) || !["XS", "S", "M", "L", "XL"].includes(size)
+    ) {
+      return res.status(400).json({ error: "Please complete all required order details." });
+    }
+
+    const id = crypto.randomUUID();
+    await pool.query(`
+      INSERT INTO jersey_orders (
+        id, product_name, product_colour, product_price, buyer_name, buyer_email,
+        buyer_address, shipping_name, shipping_address, gender, jersey_size
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+    `, [
+      id, productName, productColour, productPrice, buyerName, buyerEmail,
+      buyerAddress, shippingName, shippingAddress, gender, size,
+    ]);
+
+    res.status(201).json({ id, message: "Order request received." });
   } catch (error) {
     next(error);
   }
