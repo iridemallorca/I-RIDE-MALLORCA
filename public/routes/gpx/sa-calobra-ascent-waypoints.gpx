@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns:gpxdata="http://www.cluetrust.com/XML/GPXDATA/1/0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="http://ridewithgps.com/" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.cluetrust.com/XML/GPXDATA/1/0 http://www.cluetrust.com/Schemas/gpxdata10.xsd">
+  <metadata>
+    <name>Sa Calobra climb (ascent only)</name>
+    <link href="https://ridewithgps.com/routes/19894163">
+      <text>Sa Calobra climb (ascent only)</text>
+    </link>
+    <time>2017-03-29T22:28:27Z</time>
+  </metadata>
+  <rte>
+    <name>Sa Calobra climb (ascent only)</name>
+    <rtept lat="39.847499" lon="2.79785">
+      <name>Start</name>
+      <cmt>Start of route</cmt>
+    </rtept>
+    <rtept lat="39.83798" lon="2.79858">
+      <name>Straight</name>
+      <cmt>Continue onto Ma-2141</cmt>
+    </rtept>
+    <rtept lat="39.82735" lon="2.81794">
+      <name>End</name>
+      <cmt>End of route</cmt>
+    </rtept>
+  </rte>
+</gpx>

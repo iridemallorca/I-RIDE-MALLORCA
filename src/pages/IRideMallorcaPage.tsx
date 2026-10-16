@@ -831,12 +831,12 @@ export default function IRideMallorcaPage() {
   }
 
   const routes = [
-    { story: ROUTE_STORIES[0], name: "Sa Calobra (Coll dels Reis)", icon: <Wind className="w-5 h-5" />, blurb: "10 km of switchbacks, a legendary serpentine climb.", img: "/routes/sa-calobra.jpg" },
-    { story: ROUTE_STORIES[1], name: "Cap de Formentor", icon: <MapPin className="w-5 h-5" />, blurb: "Iconic lighthouse and sweeping 360° views.", img: "/routes/formentor.jpg" },
-    { story: ROUTE_STORIES[2], name: "Puig Major", icon: <Mountain className="w-5 h-5" />, blurb: "Highest peak in the Balearics — long sustained ascent.", img: "/routes/puig-major.png" },
-    { story: ROUTE_STORIES[3], name: "Coll de Sóller", icon: <Bike className="w-5 h-5" />, blurb: "Classic hairpins among orange groves.", img: "/routes/coll-soller.jpeg" },
-    { story: ROUTE_STORIES[5], name: "Calvià Loop", icon: <MapPin className="w-5 h-5" />, blurb: "Rolling coastal and inland roads through Calviá villages.", img: "/routes/calvia.jpg" },
-    { story: ROUTE_STORIES[4], name: "Andratx → Pollença", icon: <ArrowRight className="w-5 h-5" />, blurb: "West coast traverse with panoramic sea views.", img: "/routes/andratx-pollenca.jpg" },
+    { story: ROUTE_STORIES[0], name: "Sa Calobra (Coll dels Reis)", icon: <Wind className="w-5 h-5" />, blurb: "10 km of switchbacks, a legendary serpentine climb.", img: "/routes/sa-calobra.jpg", gpx: "/routes/gpx/sa-calobra.gpx", schematic: false },
+    { story: ROUTE_STORIES[1], name: "Cap de Formentor", icon: <MapPin className="w-5 h-5" />, blurb: "Iconic lighthouse and sweeping 360° views.", img: "/routes/formentor.jpg", gpx: "/routes/gpx/cap-de-formentor.gpx", schematic: false },
+    { story: ROUTE_STORIES[2], name: "Puig Major", icon: <Mountain className="w-5 h-5" />, blurb: "Highest peak in the Balearics — long sustained ascent.", img: "/routes/puig-major.png", gpx: "/routes/gpx/puig-major.gpx", schematic: false },
+    { story: ROUTE_STORIES[3], name: "Coll de Sóller", icon: <Bike className="w-5 h-5" />, blurb: "Classic hairpins among orange groves.", img: "/routes/coll-soller.jpeg", gpx: "/routes/gpx/coll-de-soller.gpx", schematic: true },
+    { story: ROUTE_STORIES[4], name: "Andratx → Pollença", icon: <ArrowRight className="w-5 h-5" />, blurb: "West coast traverse with panoramic sea views.", img: "/routes/andratx-pollenca.jpg", gpx: "/routes/gpx/andratx-pollenca.gpx", schematic: false },
+    { story: ROUTE_STORIES[5], name: "Calvià Loop", icon: <MapPin className="w-5 h-5" />, blurb: "Rolling coastal and inland roads through Calviá villages.", img: "/routes/calvia.jpg", gpx: "/routes/gpx/calvia-loop.gpx", schematic: false },
   ];
 
   const NAV_ITEMS = [
@@ -960,6 +960,11 @@ export default function IRideMallorcaPage() {
                   </span>
                 </summary>
                 <div className="border-t border-neutral-100 px-6 py-6">
+                  <div className="mb-6 space-y-3">
+                    <a href={r.gpx} download className="inline-flex rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Download GPX</a>
+                    {r.schematic ? <p className="text-sm text-amber-800">Schematic GPX: 16 points only; this file does not follow the road bends and is not suitable for turn-by-turn navigation. Source: Mallorca Cycling Lab (CC BY 4.0).</p> : <RouteMap url={r.gpx} title={r.name} />}
+                    {i === 0 && <div className="text-sm text-neutral-600"><a href="/routes/gpx/sa-calobra-ascent-waypoints.gpx" download className="text-red-700 underline">Download ascent-only waypoints</a><p>This alternative contains only 3 waypoints, not a detailed road track. Use the main GPX for the full climb.</p></div>}
+                  </div>
                   <div className="mb-5 h-1 w-16 rounded bg-gradient-to-r from-red-500 to-yellow-400" />
                   <div className="space-y-4 text-base leading-7 text-neutral-700">
                     {r.story.paragraphs.map((paragraph, paragraphIndex) => (

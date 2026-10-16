@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="mallorca-cycling-lab" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>Coll de Sóller</name>
+    <desc>7.5 km · 450 m elevation gain</desc>
+    <time>2026-05-24T12:50:11.069Z</time>
+    <copyright author="Mallorca Cycling Lab">
+      <license>https://creativecommons.org/licenses/by/4.0/</license>
+    </copyright>
+  </metadata>
+  <trk>
+    <name>Coll de Sóller</name>
+    <type>Cycling</type>
+    <trkseg>
+      <trkpt lat="39.70880" lon="2.70270">
+        <ele>70</ele>
+        <name>Start</name>
+      </trkpt>
+      <trkpt lat="39.71069" lon="2.70470">
+        <ele>100</ele>
+      </trkpt>
+      <trkpt lat="39.71259" lon="2.70670">
+        <ele>135</ele>
+      </trkpt>
+      <trkpt lat="39.71448" lon="2.70870">
+        <ele>170</ele>
+      </trkpt>
+      <trkpt lat="39.71637" lon="2.71070">
+        <ele>210</ele>
+      </trkpt>
+      <trkpt lat="39.71827" lon="2.71270">
+        <ele>250</ele>
+      </trkpt>
+      <trkpt lat="39.72016" lon="2.71470">
+        <ele>290</ele>
+      </trkpt>
+      <trkpt lat="39.72205" lon="2.71670">
+        <ele>330</ele>
+      </trkpt>
+      <trkpt lat="39.72395" lon="2.71870">
+        <ele>370</ele>
+      </trkpt>
+      <trkpt lat="39.72584" lon="2.72070">
+        <ele>405</ele>
+      </trkpt>
+      <trkpt lat="39.72773" lon="2.72270">
+        <ele>440</ele>
+      </trkpt>
+      <trkpt lat="39.72963" lon="2.72470">
+        <ele>470</ele>
+      </trkpt>
+      <trkpt lat="39.73152" lon="2.72670">
+        <ele>495</ele>
+      </trkpt>
+      <trkpt lat="39.73341" lon="2.72870">
+        <ele>510</ele>
+      </trkpt>
+      <trkpt lat="39.73531" lon="2.73070">
+        <ele>518</ele>
+      </trkpt>
+      <trkpt lat="39.73720" lon="2.73270">
+        <ele>520</ele>
+        <name>Summit</name>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>
