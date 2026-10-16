@@ -1,4 +1,4 @@
-const API_BASE = (import.meta as any).env?.VITE_API_URL || "http://localhost:4000";
+const API_BASE = (import.meta as any).env?.VITE_API_URL || "/gpx-api";
 
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
