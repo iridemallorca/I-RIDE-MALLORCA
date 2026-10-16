@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Mountain, Wind, Bike, Mail, Shirt, ArrowRight, Upload, MessageCircle, Users } from "lucide-react";
 
-import type { ChatMsg, OrderDraft as OrderDraftT, TrackDTO, PartnerPostDTO } from "@/api/types";
+import type { ChatMsg, OrderDraft as OrderDraftT, OrderProduct, TrackDTO, PartnerPostDTO } from "@/api/types";
 import { fetchChat, sendChat } from "@/api/chat";
 import { fetchUpcomingPartners, createPartnerPost } from "@/api/partner";
 import { fetchTracks, createTrack } from "@/api/track";
@@ -207,7 +207,7 @@ const FileInputEn = React.forwardRef<HTMLInputElement, {
 });
 FileInputEn.displayName = "FileInputEn";
 
-export function OrderFormModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function OrderFormModal({ open, onClose, product }: { open: boolean; onClose: () => void; product?: OrderProduct }) {
   const [draft, setDraft] = useState<OrderDraftT>(() =>
     loadLS<OrderDraftT>(LS_ORDER_DRAFT, {
       buyerName: "",
@@ -220,6 +220,9 @@ export function OrderFormModal({ open, onClose }: { open: boolean; onClose: () =
       size: "M",
     })
   );
+
+  const [sending, setSending] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   useEffect(() => { saveLS(LS_ORDER_DRAFT, draft); }, [draft]);
 
@@ -237,12 +240,16 @@ export function OrderFormModal({ open, onClose }: { open: boolean; onClose: () =
       ? { ...draft, shippingName: draft.buyerName, shippingAddress: draft.buyerAddress }
       : draft;
 
+    setSending(true);
+    setSubmitError("");
     try {
-      await createOrder(payload);
-      alert("Order sent successfully!");
-      onClose();
+      await createOrder(payload, product);
+      localStorage.removeItem(LS_ORDER_DRAFT);
+      window.location.assign("/order-confirmed/");
     } catch (e: any) {
-      alert(e?.message || "Order failed");
+      setSubmitError(e?.message || "Your order request could not be sent. Please try again.");
+    } finally {
+      setSending(false);
     }
   }
 
@@ -257,15 +264,16 @@ export function OrderFormModal({ open, onClose }: { open: boolean; onClose: () =
         </div>
 
         <form onSubmit={submitOrder} className="p-4 grid md:grid-cols-2 gap-4">
+          {product && <div className="md:col-span-2 rounded-xl bg-yellow-50 p-3 text-sm text-neutral-800"><strong>{product.name}</strong> · {product.colour} · €{product.price.toFixed(2)}</div>}
           <div className="md:col-span-2 font-semibold text-neutral-700">Buyer</div>
 
-          <input required placeholder="Full name" className="border rounded-xl px-3 py-2"
+          <input required name="buyerName" placeholder="Full name" className="border rounded-xl px-3 py-2"
             value={draft.buyerName} onChange={(e) => setDraft({ ...draft, buyerName: e.target.value })} />
 
-          <input required type="email" placeholder="Email" className="border rounded-xl px-3 py-2"
+          <input required name="buyerEmail" type="email" placeholder="Email" className="border rounded-xl px-3 py-2"
             value={draft.buyerEmail} onChange={(e) => setDraft({ ...draft, buyerEmail: e.target.value })} />
 
-          <input required placeholder="Address" className="border rounded-xl px-3 py-2 md:col-span-2"
+          <input required name="buyerAddress" placeholder="Address" className="border rounded-xl px-3 py-2 md:col-span-2"
             value={draft.buyerAddress} onChange={(e) => setDraft({ ...draft, buyerAddress: e.target.value })} />
 
           <div className="md:col-span-2 font-semibold text-neutral-700 mt-2">Shipping</div>
@@ -277,13 +285,13 @@ export function OrderFormModal({ open, onClose }: { open: boolean; onClose: () =
             Shipping address is same as buyer
           </label>
 
-          <input required placeholder="Shipping name"
+          <input required name="shippingName" placeholder="Shipping name"
             className={`border rounded-xl px-3 py-2 ${shippingDisabled ? "bg-neutral-100 text-neutral-500" : ""}`}
             value={draft.shippingName}
             onChange={(e) => setDraft({ ...draft, shippingName: e.target.value })}
             disabled={shippingDisabled} />
 
-          <input required placeholder="Shipping address"
+          <input required name="shippingAddress" placeholder="Shipping address"
             className={`border rounded-xl px-3 py-2 ${shippingDisabled ? "bg-neutral-100 text-neutral-500" : ""}`}
             value={draft.shippingAddress}
             onChange={(e) => setDraft({ ...draft, shippingAddress: e.target.value })}
@@ -292,7 +300,7 @@ export function OrderFormModal({ open, onClose }: { open: boolean; onClose: () =
           <div className="md:col-span-2 grid grid-cols-2 gap-4 mt-2">
             <div>
               <label className="text-sm text-neutral-700 block mb-1">Gender</label>
-              <select className="border rounded-xl px-3 py-2 w-full"
+              <select name="gender" className="border rounded-xl px-3 py-2 w-full"
                 value={draft.gender}
                 onChange={(e) => setDraft({ ...draft, gender: e.target.value as OrderDraftT["gender"] })}>
                 <option value="male">Male</option>
@@ -302,7 +310,7 @@ export function OrderFormModal({ open, onClose }: { open: boolean; onClose: () =
 
             <div>
               <label className="text-sm text-neutral-700 block mb-1">Size</label>
-              <select className="border rounded-xl px-3 py-2 w-full"
+              <select name="size" className="border rounded-xl px-3 py-2 w-full"
                 value={draft.size}
                 onChange={(e) => setDraft({ ...draft, size: e.target.value as OrderDraftT["size"] })}>
                 {(["XS", "S", "M", "L", "XL"] as const).map((s) => <option key={s} value={s}>{s}</option>)}
@@ -310,9 +318,10 @@ export function OrderFormModal({ open, onClose }: { open: boolean; onClose: () =
             </div>
           </div>
 
+          {submitError && <p role="alert" className="md:col-span-2 rounded-xl bg-red-50 p-3 text-sm text-red-800">{submitError}</p>}
           <div className="md:col-span-2 flex items-center justify-end gap-3 mt-2">
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" className="bg-red-600 hover:bg-red-700">Send Order</Button>
+            <Button type="button" variant="outline" onClick={onClose} disabled={sending}>Cancel</Button>
+            <Button type="submit" className="bg-red-600 hover:bg-red-700" disabled={sending}>{sending ? "Sending order…" : "Send Order"}</Button>
           </div>
         </form>
       </div>
