@@ -722,6 +722,23 @@ export default function IRideMallorcaPage() {
     { story: ROUTE_STORIES[5], name: "Calvià Loop", icon: <MapPin className="w-5 h-5" />, blurb: "Rolling coastal and inland roads through Calviá villages.", img: "/routes/calvia.webp", gpx: "/routes/gpx/calvia-loop.gpx", schematic: false },
   ];
 
+  const moreRoutes = [
+    {
+      name: "Mallorca 312 — Alcúdia Loop",
+      facts: "313.2 km · approx. +4,724 m · Alcúdia loop · 2025 event route",
+      gpx: "/routes/gpx/mallorca-312-2025.gpx",
+      source: "Official Mallorca 312 route",
+      sourceUrl: "https://mallorca312.com/en/mallorca-312/",
+    },
+    {
+      name: "Orient Loop — Can Pastilla",
+      facts: "91.9 km · approx. +1,496 m · Can Pastilla – Orient – Can Pastilla",
+      gpx: "/routes/gpx/orient-loop.gpx",
+      source: "Mallorca Cycling Center route",
+      sourceUrl: "https://www.mallorcacyclingcenter.com/en/route/9-orient/",
+    },
+  ];
+
   const NAV_ITEMS = [
     { label: "Routes", href: "#routes", hover: "hover:bg-red-500 hover:text-white" },
     { label: "Jersey", href: "#jersey", hover: "hover:bg-yellow-400 hover:text-neutral-900" },
@@ -861,6 +878,23 @@ export default function IRideMallorcaPage() {
               </details>
             ))}
           </div>
+
+          <section className="mt-12 border-t border-neutral-200 pt-10" aria-labelledby="more-mallorca-routes">
+            <h2 id="more-mallorca-routes" className="text-2xl font-bold">More Mallorca Road Cycling Routes &amp; GPX Downloads</h2>
+            <p className="mt-2 text-neutral-600">Free GPX files for longer Mallorca road bike rides.</p>
+            <ul className="mt-5 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm divide-y divide-neutral-200">
+              {moreRoutes.map((route) => (
+                <li key={route.gpx} className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h3 className="font-semibold text-neutral-900">{route.name}</h3>
+                    <p className="mt-1 text-sm text-neutral-600">{route.facts}</p>
+                    <a href={route.sourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-neutral-500 underline underline-offset-2">Source: {route.source}</a>
+                  </div>
+                  <a href={route.gpx} download className="inline-flex shrink-0 items-center justify-center rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Download GPX</a>
+                </li>
+              ))}
+            </ul>
+          </section>
         </div>
       </section>
 
