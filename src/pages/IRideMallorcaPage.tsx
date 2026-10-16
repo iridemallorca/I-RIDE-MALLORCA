@@ -52,12 +52,21 @@ function haversineKm(a: [number, number], b: [number, number]) {
 async function parseGPX(file: File) {
   const text = await file.text();
   const doc = new DOMParser().parseFromString(text, "application/xml");
-  const pts = Array.from(doc.getElementsByTagName("trkpt"));
-  const coords = pts.map((p: any) => [
+  if (doc.querySelector("parsererror") || doc.documentElement.tagName.toLowerCase() !== "gpx") {
+    throw new Error("Please choose a valid GPX file.");
+  }
+
+  const trackPoints = Array.from(doc.getElementsByTagName("trkpt"));
+  const points = trackPoints.length ? trackPoints : Array.from(doc.getElementsByTagName("rtept"));
+  const coords = points.map((p: any) => [
     parseFloat(p.getAttribute("lat")),
     parseFloat(p.getAttribute("lon")),
     p.getElementsByTagName("ele")[0]?.textContent ? parseFloat(p.getElementsByTagName("ele")[0].textContent!) : 0,
-  ]);
+  ] as [number, number, number]).filter(([lat, lon]) => Number.isFinite(lat) && Number.isFinite(lon));
+
+  if (coords.length < 2) {
+    throw new Error("This GPX file needs at least two route points.");
+  }
 
   let dist = 0, gain = 0;
   for (let i = 1; i < coords.length; i++) {
@@ -543,6 +552,8 @@ function PartnerFinder() {
 function TrackShare() {
   const [tracks, setTracks] = useState<TrackCard[]>([]);
   const [query, setQuery] = useState("");
+  const [uploadError, setUploadError] = useState("");
+  const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const matchingTracks = useMemo(() => {
@@ -581,17 +592,28 @@ function TrackShare() {
     const f = e.target.files?.[0];
     if (!f) return;
 
-    const parsed = await parseGPX(f);
-    const [minLat, minLon, maxLat, maxLon] = parsed.bbox;
-    const w = 600, h = 300;
-
-    const path = parsed.coords.map(([lat, lon]) => {
-      const x = ((lon - minLon) / (maxLon - minLon || 1)) * w;
-      const y = h - ((lat - minLat) / (maxLat - minLat || 1)) * h;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    }).join(" ");
+    setUploadError("");
+    if (!/\.gpx$/i.test(f.name)) {
+      setUploadError("Please choose a GPX file (.gpx). Other GPS formats are not supported yet.");
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
+    if (f.size > 10 * 1024 * 1024) {
+      setUploadError("The GPX file must be smaller than 10 MB.");
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
 
     try {
+      setUploading(true);
+      const parsed = await parseGPX(f);
+      const [minLat, minLon, maxLat, maxLon] = parsed.bbox;
+      const w = 600, h = 300;
+      const path = parsed.coords.map(([lat, lon]) => {
+        const x = ((lon - minLon) / (maxLon - minLon || 1)) * w;
+        const y = h - ((lat - minLat) / (maxLat - minLat || 1)) * h;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(" ");
       const up = await uploadGpx(f);
 
       const created = await createTrack({
@@ -614,8 +636,9 @@ function TrackShare() {
 
       setTracks(x => [t, ...x]);
     } catch (err: any) {
-      alert(err?.message || "Track upload failed");
+      setUploadError(err?.message || "The route could not be uploaded. Please try again.");
     } finally {
+      setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
     }
   }
@@ -627,9 +650,10 @@ function TrackShare() {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <FileInputEn ref={fileRef} accept=".gpx,application/gpx+xml" onChange={onUpload} buttonText="Upload GPS file" />
-          <span className="text-sm text-neutral-600">Share your favorite cycling route by uploading a GPS file.</span>
+          <FileInputEn ref={fileRef} accept=".gpx,application/gpx+xml" onChange={onUpload} buttonText={uploading ? "Uploading…" : "Upload GPS file"} />
+          <span className="text-sm text-neutral-600">Share your favorite cycling route by uploading a GPS file. GPX files up to 10 MB are supported.</span>
         </div>
+        {uploadError && <p role="alert" className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-800">{uploadError}</p>}
 
         <label className="mt-6 block">
           <span className="sr-only">Search shared routes</span>
