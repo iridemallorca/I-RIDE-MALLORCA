@@ -16,169 +16,8 @@ import RouteMap from "@/components/RouteMap";
 
 import JerseySlideshow from "@/components/JerseySlideshow";
 
-const ROUTE_STORIES = [
-  {
-    "heading": "1. SA CALOBRA",
-    "subtitle": "THE LEGENDARY CLIMB",
-    "tagline": "One road down. One way back. A climb you'll never forget.",
-    "paragraphs": [
-      "Some climbs you simply ride. Others stay with you for a lifetime.",
-      "Sa Calobra is one of those climbs.",
-      "Hidden deep within the spectacular Serra de Tramuntana mountains, Mallorca's most legendary cycling road has earned its place on the bucket list of road cyclists around the world.",
-      "The experience begins long before the climbing starts. As you descend towards the small coastal village of Sa Calobra, the road twists through dramatic limestone cliffs, endless hairpin bends, and breathtaking mountain scenery. Every corner reveals another unforgettable view.",
-      "But the real story begins at the bottom.",
-      "Once you've reached the sea, there's only one way back: up.",
-      "The approximately 9.5-kilometre climb, averaging around 7%, demands patience, determination, and a steady rhythm. With every turn of the pedals, you climb higher above the Mediterranean, leaving the valley further behind.",
-      "The famous 270-degree Nus de sa Corbata bend is a reminder that this is no ordinary road. It's a masterpiece of mountain engineering and one of the most photographed corners in cycling.",
-      "Your legs begin to burn. Your breathing gets heavier. The road keeps rising.",
-      "But you keep going.",
-      "And finally, when you reach the top and look back towards the winding road below, something special happens.",
-      "You realise that the greatest reward isn't your average speed, your power output, or your Strava time.",
-      "It's knowing that you did it.",
-      "Sa Calobra isn't just a climb. It's an achievement you'll carry with you long after the ride is over."
-    ],
-    "signature": "I Ride Mallorca. Earn the Climb. Remember the Ride."
-  },
-  {
-    "heading": "2. CAP DE FORMENTOR",
-    "subtitle": "RIDE TO THE EDGE",
-    "tagline": "Where the mountains meet the sea, and every turn takes your breath away.",
-    "paragraphs": [
-      "Imagine setting off from Port de Pollença in the warm morning sunshine.",
-      "Ahead lies a ribbon of asphalt winding through one of the most spectacular coastal landscapes in the Mediterranean.",
-      "The sea stretches endlessly towards the horizon. The cliffs rise dramatically above the water. The air carries the unmistakable scent of the Mediterranean.",
-      "Welcome to Cap de Formentor.",
-      "This iconic cycling route takes you towards the northernmost tip of Mallorca, where a lighthouse stands above the sea at the end of a remarkable mountain road.",
-      "The journey is a beautiful combination of short but challenging climbs, flowing descents, twisting corners, and extraordinary views.",
-      "Every turn feels like a new discovery.",
-      "As you approach Mirador des Colomer, the landscape becomes almost unreal. Towering cliffs plunge towards turquoise water, while the road continues to weave its way along the rugged coastline.",
-      "It's the kind of place that makes even the most dedicated cyclist forget about watts and speed for a moment.",
-      "Sometimes you simply have to stop, take it all in, and appreciate where your bike has brought you.",
-      "And then, finally, the lighthouse appears in the distance.",
-      "Reaching Cap de Formentor feels like arriving at the edge of the island — a place where the mountains end, the sea begins, and the horizon seems to stretch forever.",
-      "You've reached this remarkable location under your own power.",
-      "But the adventure isn't over yet.",
-      "The return ride reveals entirely new perspectives, proving that the same road can deliver two completely different experiences.",
-      "Formentor reminds us that cycling isn't always about how far or how fast we ride. Sometimes it's about everything we discover along the way."
-    ],
-    "signature": "I Ride Mallorca. Chase the Horizon."
-  },
-  {
-    "heading": "3. PUIG MAJOR",
-    "subtitle": "THE ULTIMATE MOUNTAIN CHALLENGE",
-    "tagline": "Find your rhythm. Conquer the mountain. Feel the freedom.",
-    "paragraphs": [
-      "There is something special about a long mountain climb.",
-      "The moment when the distractions disappear, your breathing settles into a rhythm, and the only thing that matters is the road ahead.",
-      "If you love that feeling, Puig Major belongs on your Mallorca cycling list.",
-      "Rising into the heart of the Serra de Tramuntana, the road towards Mallorca's highest mountain offers one of the island's most famous endurance climbs.",
-      "Starting from Sóller, approximately 15 kilometres of sustained climbing lead towards the Monnàber tunnel, testing your pacing, patience, and determination.",
-      "This isn't a climb that demands constant attacks or sudden bursts of speed.",
-      "It's a mountain that rewards consistency.",
-      "As you gain altitude, the landscape slowly transforms around you.",
-      "The orange groves and charming streets of Sóller disappear below, replaced by pine forests, towering rock formations, and spectacular mountain scenery.",
-      "Kilometre after kilometre, you settle into your own rhythm.",
-      "The climb becomes a conversation between you, your bike, and the mountain.",
-      "Some moments feel effortless. Others test your determination.",
-      "But every pedal stroke takes you higher.",
-      "Beyond the main ascent, the dramatic surroundings of the Cúber and Gorg Blau reservoirs offer an entirely different side of Mallorca — peaceful, rugged, and almost alpine in character.",
-      "Up here, far above the busy beaches and coastal towns, Mallorca feels wonderfully different.",
-      "For experienced riders, Puig Major offers the satisfaction of a classic endurance climb. For ambitious recreational cyclists, it represents a challenge worth preparing for.",
-      "And when the climbing is done, the reward arrives in the form of mountain views, sweeping roads, and the unmistakable satisfaction of earning every metre of elevation.",
-      "Because some of the best cycling moments aren't about speed. They're about discovering just how far your determination can take you."
-    ],
-    "signature": "I Ride Mallorca. Rise Above the Ordinary."
-  },
-  {
-    "heading": "4. COLL DE SÓLLER",
-    "subtitle": "THE ART OF THE PERFECT CURVE",
-    "tagline": "Endless curves. Pure rhythm. Timeless cycling.",
-    "paragraphs": [
-      "There is a moment on a beautiful mountain road when everything simply comes together.",
-      "Your breathing, your cadence, the rhythm of the corners, and the feeling of your bike moving effortlessly beneath you.",
-      "Coll de Sóller is a place where that moment happens again and again.",
-      "This classic Mallorcan mountain pass is famous for its extraordinary collection of hairpin bends, beautiful surroundings, and wonderfully flowing road.",
-      "With much of the through traffic using the nearby tunnel, the old mountain road has become a favourite among cyclists seeking the pure pleasure of climbing and descending.",
-      "The magic of Coll de Sóller isn't about extreme gradients or conquering Mallorca's highest peaks.",
-      "It's about rhythm.",
-      "One corner leads naturally into the next.",
-      "You shift gears, rise briefly out of the saddle, settle back into your cadence, and follow the road as it winds gracefully through the mountains.",
-      "The climb invites you to find your own pace and enjoy every metre.",
-      "There is no need to rush.",
-      "As you approach the summit, the landscape opens up, revealing beautiful views across the surrounding mountains.",
-      "And then comes the descent towards Sóller.",
-      "Hairpin after hairpin, the road winds down towards a picturesque valley filled with orange and lemon groves, traditional stone houses, and Mediterranean charm.",
-      "It's the kind of descent that demands attention and rewards smooth, controlled riding.",
-      "Coll de Sóller is a reminder of everything that makes road cycling special.",
-      "The sound of the tyres on the asphalt. The precision of a well-taken corner. The satisfaction of a steady climb.",
-      "And the freedom of being exactly where you want to be.",
-      "Sometimes the perfect ride isn't about reaching a destination. It's about loving every single turn along the way."
-    ],
-    "signature": "I Ride Mallorca. Every Curve Tells a Story."
-  },
-  {
-    "heading": "5. ANDRATX TO POLLENÇA",
-    "subtitle": "THE ULTIMATE MALLORCA RIDE",
-    "tagline": "One island. Countless climbs. A lifetime of memories.",
-    "paragraphs": [
-      "If you had just one day to experience the very best of road cycling in Mallorca, this would be one of the rides to choose.",
-      "The legendary journey from Andratx to Pollença takes you across the spectacular Serra de Tramuntana, combining mountain roads, traditional villages, coastal views, and unforgettable climbs into one extraordinary adventure.",
-      "From the southwestern corner of the island, the road begins its journey through a landscape where rugged mountains meet the Mediterranean Sea.",
-      "Steep cliffs rise above the coastline. Small villages appear between the hills. Every climb opens the door to another remarkable view.",
-      "The route carries you through some of Mallorca's most beautiful surroundings.",
-      "Estellencs, Banyalbufar, Valldemossa, and Deià are names that every cycling enthusiast should experience at least once.",
-      "These places feel almost designed for road cycling.",
-      "Narrow mountain roads wind between ancient stone terraces and traditional houses. The Mediterranean glitters far below, while the mountains seem to stretch endlessly ahead.",
-      "But this journey is about much more than beautiful scenery.",
-      "Depending on the route variation, the ride can extend beyond 110–120 kilometres, with substantial elevation gain and a succession of demanding climbs.",
-      "It's a true full-day cycling adventure.",
-      "One that requires preparation, endurance, and smart pacing.",
-      "There will be moments when you feel unstoppable, flowing effortlessly along beautiful roads.",
-      "And there will be climbs where every turn of the pedals requires concentration and determination.",
-      "Somewhere along the way, you'll stop for a coffee in a mountain village.",
-      "You'll refill your bottles, stretch your legs, and look out across the incredible landscape around you.",
-      "And you'll remember exactly why you brought your bike to Mallorca.",
-      "As the kilometres pass, the ride becomes more than a physical challenge.",
-      "It becomes a collection of moments.",
-      "The conversations with fellow cyclists. The quiet roads in the early morning. The satisfaction of reaching another summit. The excitement of discovering what lies beyond the next corner.",
-      "And when you finally arrive in Pollença, you know you've experienced something special.",
-      "You haven't just crossed Mallorca.",
-      "You've experienced its mountains, its villages, its coastline, and its incredible cycling culture in one unforgettable journey.",
-      "This is everything we love about road cycling: freedom, challenge, friendship, discovery, and the feeling of completing something extraordinary."
-    ],
-    "signature": "I Ride Mallorca. Don't Just Visit the Island. Ride It."
-  },
-  {
-    "heading": "6. CALVIÀ LOOP",
-    "subtitle": "FROM COAST TO CLIMB",
-    "tagline": "Coastal vibes. Mountain climbs. Pure Mallorca cycling.",
-    "paragraphs": [
-      "Route: Palmanova – Santa Ponça – Peguera – Es Capdellà – Coll de sa Creu – Palma – Palmanova",
-      "Not every unforgettable ride needs to take you to the farthest corner of the island.",
-      "Sometimes, the perfect cycling adventure is waiting right outside your door.",
-      "The Calvià Loop brings together everything that makes cycling in Mallorca so special: Mediterranean coastal scenery, charming villages, peaceful countryside, winding mountain roads, and just enough climbing to make you feel you've earned that post-ride coffee.",
-      "Starting in Palmanova, the route takes you through Santa Ponça and Peguera, where the relaxed atmosphere of Mallorca's southwest coast sets the tone for the adventure ahead.",
-      "The morning sunshine, palm-lined streets, and glimpses of turquoise water remind you exactly why you came to ride on this island.",
-      "But the real magic begins as you leave the coast behind.",
-      "Heading towards Es Capdellà, the landscape slowly transforms.",
-      "Busy seaside towns give way to traditional Mallorcan countryside, stone houses, olive trees, and the foothills of the Serra de Tramuntana.",
-      "The roads begin to rise, the rhythm changes, and suddenly it's just you, your bike, and the beautiful road ahead.",
-      "Then comes Coll de sa Creu.",
-      "This is where the ride earns its character.",
-      "The climb rewards a steady rhythm rather than an all-out effort, offering flowing bends, mountain scenery, and that familiar feeling every cyclist loves: finding your pace and settling into the ascent.",
-      "Reaching the top brings its own quiet satisfaction.",
-      "You've traded the beaches for the mountains, powered your way through the countryside, and experienced another side of Mallorca that many visitors never get to see.",
-      "The descent towards Palma delivers a different kind of excitement.",
-      "Flowing corners, changing scenery, and views towards the Bay of Palma make the journey back every bit as memorable as the climb itself.",
-      "And as you make your way from Palma back to Palmanova, the circle is complete.",
-      "You've experienced the coast, the countryside, the mountains, and the city — all in one ride.",
-      "The Calvià Loop isn't about conquering Mallorca's biggest mountain or chasing a personal record.",
-      "It's about enjoying the perfect balance between effort and freedom, discovering the island at your own pace, and remembering why you fell in love with cycling in the first place.",
-      "Because sometimes, the best rides aren't the longest or the hardest. They're the ones that make you wish you could do it all over again tomorrow."
-    ],
-    "signature": "I Ride Mallorca. My Roads. My Rhythm. My Island."
-  }
-];
+import ROUTE_STORIES from "@/data/stories.json";
+import { routeGuides, products } from "@/data/content";
 
 const LOGO = "/IRIDEMALLORCA_LOGO.jpg";
 
@@ -359,7 +198,7 @@ const FileInputEn = React.forwardRef<HTMLInputElement, {
 });
 FileInputEn.displayName = "FileInputEn";
 
-function OrderFormModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function OrderFormModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [draft, setDraft] = useState<OrderDraftT>(() =>
     loadLS<OrderDraftT>(LS_ORDER_DRAFT, {
       buyerName: "",
@@ -472,7 +311,7 @@ function OrderFormModal({ open, onClose }: { open: boolean; onClose: () => void 
   );
 }
 
-function SizeGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function SizeGuideModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   if (!open) return null;
   const rows = [
     { label: "XS", chest: "84–88", waist: "70–74", hips: "86–90" },
@@ -831,12 +670,12 @@ export default function IRideMallorcaPage() {
   }
 
   const routes = [
-    { story: ROUTE_STORIES[0], name: "Sa Calobra (Coll dels Reis)", icon: <Wind className="w-5 h-5" />, blurb: "10 km of switchbacks, a legendary serpentine climb.", img: "/routes/sa-calobra.jpg", gpx: "/routes/gpx/sa-calobra.gpx", schematic: false },
-    { story: ROUTE_STORIES[1], name: "Cap de Formentor", icon: <MapPin className="w-5 h-5" />, blurb: "Iconic lighthouse and sweeping 360° views.", img: "/routes/formentor.jpg", gpx: "/routes/gpx/cap-de-formentor.gpx", schematic: false },
-    { story: ROUTE_STORIES[2], name: "Puig Major", icon: <Mountain className="w-5 h-5" />, blurb: "Highest peak in the Balearics — long sustained ascent.", img: "/routes/puig-major.png", gpx: "/routes/gpx/puig-major.gpx", schematic: false },
-    { story: ROUTE_STORIES[3], name: "Coll de Sóller", icon: <Bike className="w-5 h-5" />, blurb: "Classic hairpins among orange groves.", img: "/routes/coll-soller.jpeg", gpx: "/routes/gpx/coll-de-soller.gpx", schematic: true },
-    { story: ROUTE_STORIES[4], name: "Andratx → Pollença", icon: <ArrowRight className="w-5 h-5" />, blurb: "West coast traverse with panoramic sea views.", img: "/routes/andratx-pollenca.jpg", gpx: "/routes/gpx/andratx-pollenca.gpx", schematic: false },
-    { story: ROUTE_STORIES[5], name: "Calvià Loop", icon: <MapPin className="w-5 h-5" />, blurb: "Rolling coastal and inland roads through Calviá villages.", img: "/routes/calvia.jpg", gpx: "/routes/gpx/calvia-loop.gpx", schematic: false },
+    { story: ROUTE_STORIES[0], name: "Sa Calobra (Coll dels Reis)", icon: <Wind className="w-5 h-5" />, blurb: "10 km of switchbacks, a legendary serpentine climb.", img: "/routes/sa-calobra.webp", gpx: "/routes/gpx/sa-calobra.gpx", schematic: false },
+    { story: ROUTE_STORIES[1], name: "Cap de Formentor", icon: <MapPin className="w-5 h-5" />, blurb: "Iconic lighthouse and sweeping 360° views.", img: "/routes/formentor.webp", gpx: "/routes/gpx/cap-de-formentor.gpx", schematic: false },
+    { story: ROUTE_STORIES[2], name: "Puig Major", icon: <Mountain className="w-5 h-5" />, blurb: "Highest peak in the Balearics — long sustained ascent.", img: "/routes/puig-major.webp", gpx: "/routes/gpx/puig-major.gpx", schematic: false },
+    { story: ROUTE_STORIES[3], name: "Coll de Sóller", icon: <Bike className="w-5 h-5" />, blurb: "Classic hairpins among orange groves.", img: "/routes/coll-soller.webp", gpx: "/routes/gpx/coll-de-soller.gpx", schematic: true },
+    { story: ROUTE_STORIES[4], name: "Andratx → Port de Pollença", icon: <ArrowRight className="w-5 h-5" />, blurb: "West coast traverse with panoramic sea views.", img: "/routes/andratx-pollenca.webp", gpx: "/routes/gpx/andratx-pollenca.gpx", schematic: false },
+    { story: ROUTE_STORIES[5], name: "Calvià Loop", icon: <MapPin className="w-5 h-5" />, blurb: "Rolling coastal and inland roads through Calviá villages.", img: "/routes/calvia.webp", gpx: "/routes/gpx/calvia-loop.gpx", schematic: false },
   ];
 
   const NAV_ITEMS = [
@@ -856,7 +695,7 @@ export default function IRideMallorcaPage() {
             <img src={LOGO} alt="I Ride Mallorca logo" className="h-10 w-10 object-contain rounded-md shadow-sm" />
             <span className="font-bold tracking-wide">I Ride Mallorca - More than a Ride</span>
           </div>
-          <nav className="hidden md:flex items-center gap-2 text-sm">
+          <nav aria-label="Main navigation" className="hidden md:flex items-center gap-2 text-sm">
             {NAV_ITEMS.map((it) => (
               <a key={it.href} href={it.href} className={`px-3 py-2 rounded-md border border-transparent transition-all duration-200 ${it.hover}`}>
                 {it.label}
@@ -866,15 +705,16 @@ export default function IRideMallorcaPage() {
         </div>
       </header>
 
+      <nav aria-label="Mobile navigation" className="flex flex-wrap gap-5 border-b bg-white px-4 py-3 text-sm font-medium md:hidden"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About</a></nav>
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10 opacity-10 bg-[radial-gradient(80%_60%_at_50%_10%,#ef4444,transparent),radial-gradient(60%_40%_at_80%_70%,#f59e0b,transparent)]" />
         <div className="max-w-6xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-10 items-center">
           <div>
             <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
-              I Ride Mallorca
+              Mallorca Cycling Routes &amp; Jerseys
               <span className="block text-neutral-700 text-2xl md:text-3xl mt-2 font-semibold">More than a Ride</span>
             </h1>
-            <p className="mt-6 text-lg text-neutral-700">Iconic climbs, Mediterranean light, endless switchbacks. Join Mallorca’s cycling community—take home the jersey and the memories.</p>
+            <p className="mt-6 text-lg text-neutral-700">Explore six Mallorca road cycling routes with GPX downloads, route maps and practical planning notes. Discover Sa Calobra, Cap de Formentor and the Serra de Tramuntana, then take the memories home with an I Ride Mallorca cycling jersey.</p>
             <div className="mt-8 flex gap-3">
               <Button className="bg-red-600 hover:bg-red-700"
                 onClick={() => document.getElementById('routes')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
@@ -888,7 +728,7 @@ export default function IRideMallorcaPage() {
           </div>
 
           <a href="#jersey" aria-label="Explore the Mallorca jersey collection" className="group relative isolate block overflow-hidden rounded-3xl bg-slate-900 shadow-xl ring-1 ring-black/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-500">
-            <img src="/routes/andratx-pollenca.jpg" alt="" aria-hidden="true" width={750} height={420} className="absolute inset-0 -z-20 h-full w-full object-cover" />
+            <img src="/routes/andratx-pollenca.webp" alt="" aria-hidden="true" width={750} height={420} className="absolute inset-0 -z-20 h-full w-full object-cover" />
             <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-b from-slate-950/30 via-slate-950/65 to-slate-950/95" />
             <div className="flex items-start justify-between gap-3 p-5 pb-12 sm:p-6 sm:pb-16">
               <div className="text-white">
@@ -935,9 +775,9 @@ export default function IRideMallorcaPage() {
 
       <section id="routes" className="py-16 md:py-24 bg-neutral-100">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold">Iconic Routes</h2>
+          <h2 className="text-3xl md:text-4xl font-bold">Iconic Mallorca Cycling Routes</h2>
           <div className="mt-1 h-1 w-24 bg-gradient-to-r from-red-500 to-yellow-400 rounded"></div>
-          <p className="text-neutral-600 mt-2">Six Routes. One Island. Endless Memories.</p>
+          <p className="text-neutral-600 mt-2">Six routes. One island. Compare the routes, check the GPX details and choose your next ride.</p>
 
           <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {routes.map((r, i) => (
@@ -950,7 +790,7 @@ export default function IRideMallorcaPage() {
                       <h3 className="text-lg font-semibold">{r.name}</h3>
                     </div>
                     <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-red-700">{r.story.subtitle}</p>
-                    <p className="mt-2 leading-relaxed text-neutral-600">{r.story.tagline}</p>
+                    <p className="mt-2 leading-relaxed text-neutral-600">{routeGuides[i].summary}</p>
                   </div>
                   <span className="flex items-center justify-between gap-3 px-6 pb-6 text-sm font-semibold text-red-700">
                     <span className="group-open:hidden">Read the full story</span>
@@ -961,6 +801,7 @@ export default function IRideMallorcaPage() {
                 </summary>
                 <div className="border-t border-neutral-100 px-6 py-6">
                   <div className="mb-6 space-y-3">
+                    <a href={`/routes/${routeGuides[i].slug}/`} className="block font-semibold text-red-700 underline">{routeGuides[i].name}: route guide &amp; GPX details</a>
                     <a href={r.gpx} download className="inline-flex rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Download GPX</a>
                     {r.schematic ? <p className="text-sm text-amber-800">Schematic GPX: 16 points only; this file does not follow the road bends and is not suitable for turn-by-turn navigation. Source: Mallorca Cycling Lab (CC BY 4.0).</p> : <RouteMap url={r.gpx} title={r.name} />}
                     {i === 0 && <div className="text-sm text-neutral-600"><a href="/routes/gpx/sa-calobra-ascent-waypoints.gpx" download className="text-red-700 underline">Download ascent-only waypoints</a><p>This alternative contains only 3 waypoints, not a detailed road track. Use the main GPX for the full climb.</p></div>}
@@ -982,7 +823,7 @@ export default function IRideMallorcaPage() {
       <section id="jersey" className="py-16 md:py-24 bg-white">
         <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-center">
           <div className="max-w-2xl">
-            <h3 className="text-3xl font-bold">Wear the Island. Ride Your Way.</h3>
+            <h2 className="text-3xl font-bold">Mallorca Cycling Jerseys — Wear the Island.</h2>
             <div className="mt-1 h-1 w-56 bg-gradient-to-r from-red-500 to-yellow-400 rounded"></div>
             <p className="mt-3 leading-relaxed text-neutral-600">
               Three designs, each with its own character. Celebrate your Mallorca adventure with a colourful souvenir jersey, or choose the understated style of our Pink and White designs.
@@ -1003,8 +844,8 @@ export default function IRideMallorcaPage() {
             </div>
             <p className="mt-6 font-medium text-neutral-800">Your island. Your style. Your next ride.</p>
             <div className="mt-6 flex gap-3">
-              <Button className="bg-neutral-900 hover:bg-neutral-800" onClick={() => setOrderOpen(true)}>
-                <Shirt className="w-4 h-4 mr-2" />Shop Now
+              <Button className="bg-neutral-900 hover:bg-neutral-800" onClick={() => { window.location.href = "/jerseys/"; }}>
+                <Shirt className="w-4 h-4 mr-2" />Explore Jerseys
               </Button>
               <Button variant="outline" className="border-yellow-400 text-yellow-700 hover:bg-yellow-50" onClick={() => setSizeOpen(true)}>
                 Size Guide
@@ -1012,12 +853,15 @@ export default function IRideMallorcaPage() {
             </div>
           </div>
           <JerseySlideshow />
+          <div className="md:col-span-2 grid gap-4 sm:grid-cols-3">
+            {products.map(product => <a key={product.slug} href={`/jerseys/${product.slug}/`} className="rounded-xl border bg-white p-5 hover:border-red-500"><h3 className="font-semibold">{product.name}</h3><p className="mt-2 text-neutral-600">{product.description}</p><p className="mt-3 font-semibold">€{product.price.toFixed(2)} · View jersey</p></a>)}
+          </div>
         </div>
       </section>
 
       <section id="chat" className="py-16 md:py-24 bg-white">
         <div className="max-w-6xl mx-auto px-4">
-          <h3 className="text-3xl font-bold mb-4">Ride Chat</h3>
+          <h2 className="text-3xl font-bold mb-4">Ride Chat</h2>
           <div className="mt-1 h-1 w-20 bg-gradient-to-r from-red-500 to-yellow-400 rounded"></div>
           <p className="text-neutral-600 mb-6">Choose a room to discuss routes and plan rides with other cyclists.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1033,7 +877,7 @@ export default function IRideMallorcaPage() {
 
       <section id="partners" className="py-16 md:py-24 bg-neutral-100">
         <div className="max-w-6xl mx-auto px-4">
-          <h3 className="text-3xl font-bold mb-4">Partner Finder</h3>
+          <h2 className="text-3xl font-bold mb-4">Partner Finder</h2>
           <div className="mt-1 h-1 w-28 bg-gradient-to-r from-red-500 to-yellow-400 rounded"></div>
           <PartnerFinder />
         </div>
@@ -1041,7 +885,7 @@ export default function IRideMallorcaPage() {
 
       <section id="tracks" className="py-16 md:py-24 bg-white">
         <div className="max-w-6xl mx-auto px-4">
-          <h3 className="text-3xl font-bold mb-4">Track Share</h3>
+          <h2 className="text-3xl font-bold mb-4">Track Share</h2>
           <div className="mt-1 h-1 w-24 bg-gradient-to-r from-red-500 to-yellow-400 rounded"></div>
           <p className="text-neutral-600 mb-6">Upload your favorite route so others can enjoy it too!</p>
           <TrackShare />
@@ -1050,7 +894,7 @@ export default function IRideMallorcaPage() {
 
       <section id="contact" className="py-16 md:py-24 bg-neutral-100">
         <div className="max-w-3xl mx-auto px-4 text-center">
-          <h3 className="text-3xl font-bold">Ride with us</h3>
+          <h2 className="text-3xl font-bold">Ride with us</h2>
           <div className="mt-1 h-1 w-24 bg-gradient-to-r from-red-500 to-yellow-400 rounded mx-auto"></div>
           <p className="mt-2 text-neutral-600">Drop your email for curated route packs, local tips, and jersey drops.</p>
 
@@ -1077,7 +921,7 @@ export default function IRideMallorcaPage() {
       <footer className="py-8 border-t bg-white">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-sm text-neutral-600">© {new Date().getFullYear()} I Ride Mallorca — <span className="italic">More than a Ride</span></div>
-          <div className="text-xs text-neutral-500">Made for cyclists visiting Mallorca. Sa Calobra • Formentor • Puig Major • Coll de Sóller • Calviá</div>
+          <nav aria-label="Footer navigation" className="flex flex-wrap gap-4 text-sm text-neutral-600"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About &amp; route information</a></nav>
         </div>
       </footer>
 

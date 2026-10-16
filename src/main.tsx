@@ -1,7 +1,7 @@
-import React from "react";
-import { createRoot } from "react-dom/client";
-import "./styles.css";
-import IRideMallorcaPage from "./pages/IRideMallorcaPage";
-
-const el = document.getElementById("root")!;
-createRoot(el).render(<IRideMallorcaPage />);
+import React from 'react';
+import { createRoot, hydrateRoot } from 'react-dom/client';
+import './styles.css';
+import App from './App';
+const el = document.getElementById('root')!;
+const app = <App path={window.location.pathname} />;
+if (el.hasChildNodes()) hydrateRoot(el, app); else createRoot(el).render(app);

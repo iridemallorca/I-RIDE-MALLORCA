@@ -10,5 +10,19 @@
 
 [[redirects]]
   from = "/*"
-  to = "/index.html"
-  status = 200
+  to = "/404.html"
+  status = 404
+
+
+[[headers]]
+  for = "/routes/gpx/*"
+  [headers.values]
+    Content-Type = "application/gpx+xml; charset=utf-8"
+    Content-Disposition = "attachment"
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"

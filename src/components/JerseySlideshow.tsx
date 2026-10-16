@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 
 const slides = [
-  { src: "/jerseys/sunset-front.png", alt: "Orange and blue Mallorca cycling jersey, front view", label: "Sunset — Front" },
-  { src: "/jerseys/sunset-back.png", alt: "Orange and blue Mallorca cycling jersey, back view", label: "Sunset — Back" },
-  { src: "/jerseys/pink-front.png", alt: "Pink Mallorca cycling jersey, front view", label: "Pink — Front" },
-  { src: "/jerseys/pink-back.png", alt: "Pink Mallorca cycling jersey, back view", label: "Pink — Back" },
-  { src: "/jerseys/white-front.png", alt: "White Mallorca cycling jersey, front view", label: "White — Front" },
-  { src: "/jerseys/white-back.png", alt: "White Mallorca cycling jersey, back view", label: "White — Back" },
+  { src: "/jerseys/sunset-front.webp", alt: "Orange and blue Mallorca cycling jersey, front view", label: "Sunset — Front" },
+  { src: "/jerseys/sunset-back.webp", alt: "Orange and blue Mallorca cycling jersey, back view", label: "Sunset — Back" },
+  { src: "/jerseys/pink-front.webp", alt: "Pink Mallorca cycling jersey, front view", label: "Pink — Front" },
+  { src: "/jerseys/pink-back.webp", alt: "Pink Mallorca cycling jersey, back view", label: "Pink — Back" },
+  { src: "/jerseys/white-front.webp", alt: "White Mallorca cycling jersey, front view", label: "White — Front" },
+  { src: "/jerseys/white-back.webp", alt: "White Mallorca cycling jersey, back view", label: "White — Back" },
 ];
 
 export default function JerseySlideshow() {

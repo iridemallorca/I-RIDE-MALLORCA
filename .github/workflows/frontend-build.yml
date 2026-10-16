@@ -3,6 +3,10 @@ on:
   push:
     paths:
       - "src/**"
+      - "scripts/**"
+      - "index.html"
+      - "vite.config.ts"
+      - "netlify.toml"
       - "package*.json"
       - "tsconfig.json"
       - ".github/workflows/frontend-build.yml"
@@ -20,3 +24,4 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - run: npm run check:seo
