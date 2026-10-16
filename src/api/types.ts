@@ -26,16 +26,18 @@ export type PartnerPostDTO = {
 };
 
 export type OrderDraft = {
-    buyerName: string;
-    buyerEmail: string;
-    buyerAddress: string;
-  
-    shippingName: string;
-    shippingAddress: string;
-  
-    shippingSameAsBuyer: boolean;
-  
-    gender: "male" | "female";
-    size: "XS" | "S" | "M" | "L" | "XL";
-  };
-  
+  buyerName: string;
+  buyerEmail: string;
+  buyerAddress: string;
+  shippingName: string;
+  shippingAddress: string;
+  shippingSameAsBuyer: boolean;
+  gender: Gender;
+  size: JerseySize;
+};
+
+export type OrderProduct = {
+  name: string;
+  price: number;
+  colour: string;
+};
