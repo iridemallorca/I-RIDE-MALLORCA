@@ -436,6 +436,7 @@ function PartnerFinder() {
   const [whenLocal, setWhenLocal] = useState("");
   const [postError, setPostError] = useState("");
   const [posting, setPosting] = useState(false);
+  const [expandedRouteId, setExpandedRouteId] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -584,9 +585,12 @@ function PartnerFinder() {
                   <div className="mt-2">
                     <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
                       <span>{km(p.track.distanceKm)} • +{p.track.elevationGainM} m</span>
-                      {p.track.fileUrl && <a href={gpxDownloadUrl(p.track.fileUrl)} download className="text-red-600 underline">Download GPX</a>}
+                      <div className="flex items-center gap-3">
+                        {p.track.fileUrl && <a href={gpxDownloadUrl(p.track.fileUrl)} download className="text-red-600 underline">Download GPX</a>}
+                        {p.track.fileUrl && <button type="button" onClick={() => setExpandedRouteId((id) => id === p.id ? null : p.id)} className="font-semibold text-neutral-700 underline" aria-expanded={expandedRouteId === p.id} aria-controls={`partner-route-${p.id}`}>{expandedRouteId === p.id ? "Hide route" : "Show route"}</button>}
+                      </div>
                     </div>
-                    {p.track.fileUrl && <RouteMap url={gpxDownloadUrl(p.track.fileUrl)} title="Planned ride" />}
+                    {p.track.fileUrl && expandedRouteId === p.id && <div id={`partner-route-${p.id}`}><RouteMap url={gpxDownloadUrl(p.track.fileUrl)} title="Planned ride" /></div>}
                   </div>
                 )}
               </div>
@@ -1041,7 +1045,14 @@ export default function IRideMallorcaPage() {
       <footer className="py-8 border-t bg-white">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-sm text-neutral-600">© {new Date().getFullYear()} I Ride Mallorca — <span className="italic">More than a Ride</span></div>
-          <nav aria-label="Footer navigation" className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-neutral-600"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About</a><a href="/legal/">Legal</a><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a><a href="/ordering/">Ordering &amp; returns</a><a href="/community-guidelines/">Community guidelines</a></nav>
+          <div className="flex flex-col items-center gap-3 md:items-end">
+            <nav aria-label="Footer navigation" className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-neutral-600"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About</a><a href="/legal/">Legal</a><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a><a href="/ordering/">Ordering &amp; returns</a><a href="/community-guidelines/">Community guidelines</a></nav>
+            <div className="flex items-center gap-3 text-sm font-medium text-neutral-700">
+              <span>Follow I Ride Mallorca</span>
+              <a href="https://www.facebook.com/i.ride.mallorca" target="_blank" rel="noreferrer" className="rounded-full border border-neutral-300 px-3 py-1.5 transition hover:border-red-600 hover:text-red-700" aria-label="Follow I Ride Mallorca on Facebook">Facebook</a>
+              <a href="https://www.instagram.com/iridemallorca/" target="_blank" rel="noreferrer" className="rounded-full border border-neutral-300 px-3 py-1.5 transition hover:border-red-600 hover:text-red-700" aria-label="Follow I Ride Mallorca on Instagram">Instagram</a>
+            </div>
+          </div>
         </div>
       </footer>
 
