@@ -207,7 +207,7 @@ const FileInputEn = React.forwardRef<HTMLInputElement, {
 });
 FileInputEn.displayName = "FileInputEn";
 
-export function OrderFormModal({ open, onClose, product }: { open: boolean; onClose: () => void; product?: OrderProduct }) {
+export function OrderFormModal({ open, onClose, product }: { open: boolean; onClose: () => void; product: OrderProduct }) {
   const [draft, setDraft] = useState<OrderDraftT>(() =>
     loadLS<OrderDraftT>(LS_ORDER_DRAFT, {
       buyerName: "",
@@ -264,7 +264,7 @@ export function OrderFormModal({ open, onClose, product }: { open: boolean; onCl
         </div>
 
         <form onSubmit={submitOrder} className="p-4 grid md:grid-cols-2 gap-4">
-          {product && <div className="md:col-span-2 rounded-xl bg-yellow-50 p-3 text-sm text-neutral-800"><strong>{product.name}</strong> · {product.colour} · €{product.price.toFixed(2)}</div>}
+          <div className="md:col-span-2 rounded-xl bg-yellow-50 p-3 text-sm text-neutral-800"><strong>{product.name}</strong> · {product.colour} · €{product.price.toFixed(2)}</div>
           <p className="md:col-span-2 rounded-xl border border-neutral-200 bg-neutral-50 p-3 text-sm leading-relaxed text-neutral-700">This is an order request, not a payment or a final order. We’ll contact you personally by email to confirm availability, size, delivery options, the final total and payment.</p>
           <div className="md:col-span-2 font-semibold text-neutral-700">Buyer</div>
 
@@ -702,7 +702,7 @@ function TrackShare() {
 }
 
 export default function IRideMallorcaPage() {
-  const [orderOpen, setOrderOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<OrderProduct | null>(null);
   const [sizeOpen, setSizeOpen] = useState(false);
   const [subEmail, setSubEmail] = useState("");
   const [subLoading, setSubLoading] = useState(false);
@@ -942,7 +942,7 @@ export default function IRideMallorcaPage() {
           </div>
           <JerseySlideshow />
           <div className="md:col-span-2 grid gap-4 sm:grid-cols-3">
-            {products.map(product => <a key={product.slug} href={`/jerseys/${product.slug}/`} className="rounded-xl border bg-white p-5 hover:border-red-500"><h3 className="font-semibold">{product.name}</h3><p className="mt-2 text-neutral-600">{product.description}</p><p className="mt-3 font-semibold">€{product.price.toFixed(2)} · View jersey</p></a>)}
+            {products.map(product => <article key={product.slug} className="rounded-xl border bg-white p-5 hover:border-red-500"><a href={`/jerseys/${product.slug}/`}><h3 className="font-semibold">{product.name}</h3><p className="mt-2 text-neutral-600">{product.description}</p><p className="mt-3 font-semibold">€{product.price.toFixed(2)} · View jersey</p></a><button type="button" onClick={() => setSelectedProduct(product)} className="mt-4 text-sm font-semibold text-red-700 underline">Send order request</button></article>)}
           </div>
         </div>
       </section>
@@ -1013,7 +1013,7 @@ export default function IRideMallorcaPage() {
         </div>
       </footer>
 
-      <OrderFormModal open={orderOpen} onClose={() => setOrderOpen(false)} />
+      {selectedProduct && <OrderFormModal open onClose={() => setSelectedProduct(null)} product={selectedProduct} />}
       <SizeGuideModal open={sizeOpen} onClose={() => setSizeOpen(false)} />
     </main>
   );

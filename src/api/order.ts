@@ -1,9 +1,7 @@
 import { api } from "./client";
 import type { OrderDraft, OrderProduct } from "./types";
 
-export async function createOrder(d: OrderDraft, product?: OrderProduct) {
-  if (!product) throw new Error("Please choose a jersey before sending your order request.");
-
+export async function createOrder(d: OrderDraft, product: OrderProduct) {
   return api("/orders", {
     method: "POST",
     body: JSON.stringify({
