@@ -1,4 +1,6 @@
-const API_BASE = (import.meta as any).env?.VITE_API_URL || "/gpx-api";
+// Keep browser API calls on the I Ride Mallorca origin. Netlify proxies this
+// path to Azure, avoiding cross-origin browser failures during order requests.
+const API_BASE = "/gpx-api";
 
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
