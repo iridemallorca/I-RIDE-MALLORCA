@@ -749,6 +749,7 @@ export default function IRideMallorcaPage() {
   const [sizeOpen, setSizeOpen] = useState(false);
   const [subEmail, setSubEmail] = useState("");
   const [subLoading, setSubLoading] = useState(false);
+  const [subStatus, setSubStatus] = useState<{ tone: "success" | "error"; text: string } | null>(null);
 
   async function handleSubscribe(e: React.FormEvent) {
     e.preventDefault();
@@ -756,11 +757,12 @@ export default function IRideMallorcaPage() {
 
     try {
       setSubLoading(true);
-      await subscribeEmail(subEmail.trim());
-      alert("Subscribed successfully!");
+      setSubStatus(null);
+      const result = await subscribeEmail(subEmail.trim());
+      setSubStatus({ tone: "success", text: result.alreadySubscribed ? "You are already on the I Ride Mallorca list." : "Thanks — you are now on the I Ride Mallorca list." });
       setSubEmail("");
     } catch (err: any) {
-      alert(err?.message || "Subscribe failed");
+      setSubStatus({ tone: "error", text: err?.message || "We could not save your subscription. Please try again." });
     } finally {
       setSubLoading(false);
     }
@@ -1038,7 +1040,8 @@ export default function IRideMallorcaPage() {
             </Button>
           </form>
 
-          <p className="text-xs text-neutral-500 mt-3">By subscribing you agree to receive emails from I Ride Mallorca. Unsubscribe anytime.</p>
+          {subStatus && <p role="status" className={`mt-3 text-sm ${subStatus.tone === "success" ? "text-green-700" : "text-red-700"}`}>{subStatus.text}</p>}
+          <p className="text-xs text-neutral-500 mt-3">By subscribing you agree to receive emails from I Ride Mallorca. Unsubscribe anytime. See our <a href="/privacy/" className="underline">privacy notice</a>.</p>
         </div>
       </section>
 

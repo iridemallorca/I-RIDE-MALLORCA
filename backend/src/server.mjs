@@ -129,6 +129,13 @@ async function initialise() {
     )
   `);
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS email_subscribers (
+      id UUID PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS community_messages (
       id UUID PRIMARY KEY,
       session_id TEXT NOT NULL,
@@ -264,6 +271,23 @@ async function sendCommunityModerationNotification(message, reportCount) {
   });
 }
 
+async function sendSubscriberNotification(subscriber) {
+  if (!mailer) throw new Error("Subscription email is not configured.");
+
+  await mailer.sendMail({
+    from: mailFrom,
+    to: ownerEmail,
+    subject: "I Ride Mallorca subscriber",
+    replyTo: subscriber.email,
+    text: [
+      "A visitor subscribed to I Ride Mallorca updates.",
+      "",
+      `Email: ${subscriber.email}`,
+      `Subscribed at: ${new Date(subscriber.created_at).toISOString()}`,
+    ].join("\n"),
+  });
+}
+
 app.post("/orders", async (req, res, next) => {
   try {
     const body = req.body || {};
@@ -305,6 +329,43 @@ app.post("/orders", async (req, res, next) => {
     ]);
 
     res.status(201).json({ id, message: "Order request received." });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/subscribe", async (req, res, next) => {
+  try {
+    const email = cleanOrderText(req.body?.email, 254).toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: "Please enter a valid email address." });
+    }
+
+    const id = crypto.randomUUID();
+    const inserted = await pool.query(`
+      INSERT INTO email_subscribers (id, email)
+      VALUES ($1, $2)
+      ON CONFLICT (email) DO NOTHING
+      RETURNING id, email, created_at
+    `, [id, email]);
+
+    if (!inserted.rowCount) {
+      return res.json({ subscriber: { email }, alreadySubscribed: true, emailStatus: { owner: "not-sent" } });
+    }
+
+    const subscriber = inserted.rows[0];
+    try {
+      await sendSubscriberNotification(subscriber);
+    } catch (mailError) {
+      await pool.query("DELETE FROM email_subscribers WHERE id = $1", [subscriber.id]);
+      throw mailError;
+    }
+
+    res.status(201).json({
+      subscriber: { id: subscriber.id, email: subscriber.email, createdAt: subscriber.created_at },
+      alreadySubscribed: false,
+      emailStatus: { owner: "fulfilled" },
+    });
   } catch (error) {
     next(error);
   }
