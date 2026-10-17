@@ -14,6 +14,7 @@ const pages = [
  {path:'/privacy/',title:'Privacy Notice | I Ride Mallorca',description:'How I Ride Mallorca handles personal data for website enquiries and jersey order requests.',noindex:true},
  {path:'/cookies/',title:'Cookie Notice | I Ride Mallorca',description:'Cookie and local storage information for I Ride Mallorca.',noindex:true},
  {path:'/ordering/',title:'Ordering, Delivery and Returns | I Ride Mallorca',description:'How I Ride Mallorca jersey order requests, delivery and returns work.',noindex:true},
+ {path:'/community-guidelines/',title:'Community Chat Guidelines | I Ride Mallorca',description:'Rules for using the I Ride Mallorca cycling community chat safely and respectfully.',noindex:true},
  {path:'/order-confirmed/',title:'Order Request Received | I Ride Mallorca',description:'Your I Ride Mallorca jersey order request has been received. We will be in touch with the next steps by email.',noindex:true},
  ...routeGuides.map(route=>({path:routePath(route.slug),title:`${route.name}: Cycling Route & GPX | I Ride Mallorca`,description:route.summary,route,image:route.image})),
  ...products.map(product=>({path:productPath(product.slug),title:`${product.name} | I Ride Mallorca`,description:`${product.description} Listed at €${product.price.toFixed(2)}. View front and back photos, sizing and order information.`,product,image:product.images[0]})),

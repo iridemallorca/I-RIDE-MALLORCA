@@ -1,12 +1,19 @@
 import { api } from "./client";
-import type { ChatMessageDTO } from "./types";
+import type { CommunityMessageDTO } from "./types";
 
-export async function fetchChat(room: string, limit = 200): Promise<ChatMessageDTO[]> {
-  return api(`/chat/${encodeURIComponent(room)}?limit=${encodeURIComponent(String(limit))}`);
+export async function fetchCommunityMessages(limit = 100): Promise<CommunityMessageDTO[]> {
+  return api(`/community/messages?limit=${encodeURIComponent(String(limit))}`);
 }
 
-export async function sendChat(room: string, payload: { user: string; content: string; ts?: number }): Promise<ChatMessageDTO> {
-  return api(`/chat/${encodeURIComponent(room)}`, {
+export async function sendCommunityMessage(payload: { sessionId: string; content: string }): Promise<CommunityMessageDTO> {
+  return api("/community/messages", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function reportCommunityMessage(id: string, payload: { sessionId: string; reason: string }): Promise<{ hidden: boolean; reportCount: number }> {
+  return api(`/community/messages/${encodeURIComponent(id)}/report`, {
     method: "POST",
     body: JSON.stringify(payload),
   });

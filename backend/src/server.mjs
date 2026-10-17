@@ -48,6 +48,15 @@ const upload = multer({
     done(null, /\.gpx$/i.test(file.originalname));
   },
 });
+const communityRateWindows = new Map();
+const communityBlockedPatterns = [
+  /(?:https?:\/\/|www\.)/i,
+  /\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b/i,
+  /(?:\+?\d[\d\s().-]{7,}\d)/,
+  /\b(?:telegram|whatsapp)\s*(?:me|:+)?\s*\+?\d/i,
+  /\b(?:crypto|forex|airdrop|giveaway)\b/i,
+  /\b(?:kill yourself|kys)\b/i,
+];
 
 app.use(cors({
   origin(origin, callback) {
@@ -119,6 +128,28 @@ async function initialise() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS community_messages (
+      id UUID PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      hidden_at TIMESTAMPTZ,
+      hidden_reason TEXT
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS community_messages_visible_created_idx ON community_messages (created_at DESC) WHERE hidden_at IS NULL`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS community_message_reports (
+      id UUID PRIMARY KEY,
+      message_id UUID NOT NULL REFERENCES community_messages(id) ON DELETE CASCADE,
+      reporter_session_id TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(message_id, reporter_session_id)
+    )
+  `);
 }
 
 app.get("/health", async (_req, res, next) => {
@@ -132,6 +163,32 @@ app.get("/health", async (_req, res, next) => {
 
 function cleanOrderText(value, limit) {
   return String(value || "").trim().slice(0, limit);
+}
+
+function cleanCommunityText(value) {
+  return String(value || "").normalize("NFKC").replace(/\s+/g, " ").trim().slice(0, 360);
+}
+
+function validCommunitySession(value) {
+  return /^[a-z0-9_-]{8,64}$/i.test(String(value || ""));
+}
+
+function riderName(sessionId) {
+  return `Rider ${sessionId.slice(-4).toUpperCase()}`;
+}
+
+function takeCommunityMessageSlot(sessionId) {
+  const now = Date.now();
+  if (communityRateWindows.size > 10_000) {
+    for (const [key, timestamps] of communityRateWindows) {
+      if (!timestamps.some((timestamp) => now - timestamp < 60_000)) communityRateWindows.delete(key);
+    }
+  }
+  const current = (communityRateWindows.get(sessionId) || []).filter((timestamp) => now - timestamp < 60_000);
+  if (current.length >= 3) return false;
+  current.push(now);
+  communityRateWindows.set(sessionId, current);
+  return true;
 }
 
 async function sendOrderNotification(order) {
@@ -205,6 +262,85 @@ app.post("/orders", async (req, res, next) => {
     ]);
 
     res.status(201).json({ id, message: "Order request received." });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/community/messages", async (req, res, next) => {
+  try {
+    const requested = Number(req.query.limit);
+    const limit = Number.isFinite(requested) ? Math.min(Math.max(Math.trunc(requested), 1), 100) : 100;
+    const { rows } = await pool.query(`
+      SELECT id, display_name, content, created_at
+      FROM (
+        SELECT id, display_name, content, created_at
+        FROM community_messages
+        WHERE hidden_at IS NULL
+        ORDER BY created_at DESC
+        LIMIT $1
+      ) AS recent_messages
+      ORDER BY created_at ASC
+    `, [limit]);
+    res.json(rows.map((message) => ({ id: message.id, user: message.display_name, content: message.content, ts: message.created_at })));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/community/messages", async (req, res, next) => {
+  try {
+    const sessionId = String(req.body?.sessionId || "");
+    const content = cleanCommunityText(req.body?.content);
+    if (!validCommunitySession(sessionId)) return res.status(400).json({ error: "Please refresh the page and try again." });
+    if (content.length < 2) return res.status(400).json({ error: "Please write a message of at least two characters." });
+    if (communityBlockedPatterns.some((pattern) => pattern.test(content))) {
+      return res.status(400).json({ error: "For everyone’s safety, messages cannot include links, contact details, spam or harmful language." });
+    }
+    if (!takeCommunityMessageSlot(sessionId)) return res.status(429).json({ error: "Please wait a moment before sending another message." });
+
+    const duplicate = await pool.query(`
+      SELECT 1 FROM community_messages
+      WHERE session_id = $1 AND content = $2 AND created_at > NOW() - INTERVAL '10 minutes'
+      LIMIT 1
+    `, [sessionId, content]);
+    if (duplicate.rowCount) return res.status(409).json({ error: "That message was already shared recently." });
+
+    const id = crypto.randomUUID();
+    const { rows } = await pool.query(`
+      INSERT INTO community_messages (id, session_id, display_name, content)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, display_name, content, created_at
+    `, [id, sessionId, riderName(sessionId), content]);
+    const message = rows[0];
+    res.status(201).json({ id: message.id, user: message.display_name, content: message.content, ts: message.created_at });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/community/messages/:id/report", async (req, res, next) => {
+  try {
+    const messageId = String(req.params.id || "");
+    const sessionId = String(req.body?.sessionId || "");
+    const reason = cleanCommunityText(req.body?.reason || "Community member report").slice(0, 160);
+    if (!/^[a-f0-9-]{36}$/i.test(messageId) || !validCommunitySession(sessionId)) return res.status(400).json({ error: "The report could not be processed." });
+    const reported = await pool.query(`
+      INSERT INTO community_message_reports (id, message_id, reporter_session_id, reason)
+      SELECT $1, id, $2, $3 FROM community_messages WHERE id = $4
+      ON CONFLICT (message_id, reporter_session_id) DO NOTHING
+      RETURNING message_id
+    `, [crypto.randomUUID(), sessionId, reason || "Community member report", messageId]);
+    if (!reported.rowCount) {
+      const exists = await pool.query("SELECT 1 FROM community_messages WHERE id = $1", [messageId]);
+      if (!exists.rowCount) return res.status(404).json({ error: "Message not found." });
+      return res.status(409).json({ error: "You have already reported this message." });
+    }
+    const countResult = await pool.query("SELECT COUNT(*)::int AS count FROM community_message_reports WHERE message_id = $1", [messageId]);
+    const reportCount = countResult.rows[0].count;
+    const hidden = reportCount >= 3;
+    if (hidden) await pool.query("UPDATE community_messages SET hidden_at = COALESCE(hidden_at, NOW()), hidden_reason = COALESCE(hidden_reason, 'Community reports') WHERE id = $1", [messageId]);
+    res.status(201).json({ hidden, reportCount });
   } catch (error) {
     next(error);
   }

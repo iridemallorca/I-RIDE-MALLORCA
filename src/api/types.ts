@@ -1,9 +1,7 @@
 export type Gender = "male" | "female";
 export type JerseySize = "XS" | "S" | "M" | "L" | "XL";
 
-export type ChatMsg = { room: string; user: string; content: string; ts: number };
-
-export type ChatMessageDTO = { id: string; room: string; user: string; content: string; ts: string };
+export type CommunityMessageDTO = { id: string; user: string; content: string; ts: string };
 
 export type TrackDTO = {
   id: string;

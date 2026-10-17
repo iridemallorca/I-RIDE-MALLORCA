@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, Mountain, Wind, Bike, Mail, Shirt, ArrowRight, Upload, MessageCircle, Users } from "lucide-react";
 
-import type { ChatMsg, OrderDraft as OrderDraftT, OrderProduct, TrackDTO, PartnerPostDTO } from "@/api/types";
-import { fetchChat, sendChat } from "@/api/chat";
+import type { CommunityMessageDTO, OrderDraft as OrderDraftT, OrderProduct, TrackDTO, PartnerPostDTO } from "@/api/types";
+import { fetchCommunityMessages, reportCommunityMessage, sendCommunityMessage } from "@/api/chat";
 import { fetchUpcomingPartners, createPartnerPost } from "@/api/partner";
 import { fetchTracks, createTrack } from "@/api/track";
 import { createOrder } from "@/api/order";
@@ -89,57 +89,77 @@ function loadLS<T>(key: string, fallback: T): T {
 }
 function saveLS<T>(key: string, val: T) { try { localStorage.setItem(key, JSON.stringify(val)); } catch { } }
 
-function RideChat({ room }: { room: string }) {
-  const [messages, setMessages] = useState<ChatMsg[]>([]);
+const COMMUNITY_SESSION_KEY = "irm_community_session_v1";
+
+function communitySessionId() {
+  const stored = loadLS<string>(COMMUNITY_SESSION_KEY, "");
+  if (/^[a-z0-9_-]{8,64}$/i.test(stored)) return stored;
+  const id = typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID().replace(/-/g, "")
+    : `rider${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+  saveLS(COMMUNITY_SESSION_KEY, id);
+  return id;
+}
+
+function CommunityChat() {
+  const [messages, setMessages] = useState<CommunityMessageDTO[]>([]);
   const [text, setText] = useState("");
-  const user = useMemo(() => `guest-${(Math.random() * 9999 | 0).toString(16)}`, []);
+  const [sessionId, setSessionId] = useState("");
+  const [status, setStatus] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
+    setSessionId(communitySessionId());
     let alive = true;
 
     async function load() {
       try {
-        const data = await fetchChat(room, 200);
+        const data = await fetchCommunityMessages(100);
         if (!alive) return;
-
-        const mapped: ChatMsg[] = (data || []).map((m) => ({
-          room: m.room,
-          user: m.user,
-          content: m.content,
-          ts: new Date(m.ts).getTime(),
-        }));
-
-        setMessages(mapped);
-      } catch {
-        // silent
+        setMessages(data || []);
+        setStatus("");
+      } catch (error: any) {
+        if (alive) setStatus(error?.message || "Chat is temporarily unavailable. Please try again shortly.");
+      } finally {
+        if (alive) setLoading(false);
       }
     }
 
     load();
-    const id = window.setInterval(load, 2500);
+    const id = window.setInterval(load, 10000);
     return () => {
       alive = false;
       window.clearInterval(id);
     };
-  }, [room]);
+  }, []);
 
   async function send() {
-    if (!text.trim()) return;
-
-    const payload = { user, content: text.trim(), ts: Date.now() };
-    setText("");
+    if (!text.trim() || !sessionId || sending) return;
+    setStatus("");
+    setSending(true);
 
     try {
-      const created = await sendChat(room, payload);
-      const m: ChatMsg = {
-        room: created.room,
-        user: created.user,
-        content: created.content,
-        ts: new Date(created.ts).getTime(),
-      };
-      setMessages((x) => [...x, m]);
+      const created = await sendCommunityMessage({ sessionId, content: text.trim() });
+      setMessages((current) => [...current, created].slice(-100));
+      setText("");
+      setStatus("Message shared with the community.");
     } catch (e: any) {
-      alert(e?.message || "Failed to send message");
+      setStatus(e?.message || "Your message could not be sent.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function report(id: string) {
+    if (!sessionId) return;
+    setStatus("");
+    try {
+      const result = await reportCommunityMessage(id, { sessionId, reason: "Community member report" });
+      if (result.hidden) setMessages((current) => current.filter((message) => message.id !== id));
+      setStatus(result.hidden ? "Thanks — the reported message has been removed." : "Thanks — your report has been recorded.");
+    } catch (error: any) {
+      setStatus(error?.message || "The report could not be sent.");
     }
   }
 
@@ -147,18 +167,21 @@ function RideChat({ room }: { room: string }) {
     <Card className="rounded-2xl">
       <CardHeader className="flex flex-row items-center gap-2">
         <MessageCircle className="w-5 h-5 text-red-600" />
-        <CardTitle className="text-base md:text-lg">Ride Chat – {room}</CardTitle>
+        <CardTitle className="text-base md:text-lg">Mallorca Cycling Community Chat</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="aspect-[21/9] rounded-xl border bg-white overflow-hidden flex flex-col">
-          <div className="flex-1 overflow-auto p-2 bg-neutral-50 text-sm">
-            {messages.length === 0 ? (
-              <div className="text-neutral-500 text-sm p-3">Welcome to the channel! Send the first message 🚴</div>
+        <div className="mb-4 rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm leading-relaxed text-neutral-700">
+          <strong className="text-neutral-900">Ride kindly and safely.</strong> This is a public community chat. Your browser is given a neutral rider name; do not share personal contact details, addresses, payment details or links. Spam, abuse and unsafe content are blocked or removed. <a className="font-semibold text-red-700 underline" href="/community-guidelines/">Read the community guidelines</a>.
+        </div>
+        <div className="h-[26rem] rounded-xl border bg-white overflow-hidden flex flex-col">
+          <div className="flex-1 overflow-auto p-4 bg-neutral-50 text-sm" aria-live="polite">
+            {loading ? <div className="text-neutral-500">Loading the conversation…</div> : messages.length === 0 ? (
+              <div className="text-neutral-500">Be the first rider to start the conversation. 🚴</div>
             ) : (
-              messages.map((m, i) => (
-                <div key={i} className="text-sm py-1">
-                  <b className="text-neutral-700">{m.user}</b>{" "}
-                  <span className="text-neutral-400 text-xs">{new Date(m.ts).toLocaleTimeString()}</span>: {m.content}
+              messages.map((m) => (
+                <div key={m.id} className="border-b border-neutral-200 py-3 last:border-0">
+                  <div className="flex items-baseline justify-between gap-3"><div><b className="text-neutral-800">{m.user}</b><span className="ml-2 text-xs text-neutral-400">{new Date(m.ts).toLocaleString()}</span></div><button type="button" onClick={() => report(m.id)} className="shrink-0 text-xs font-semibold text-red-700 underline">Report</button></div>
+                  <p className="mt-1 whitespace-pre-wrap break-words text-neutral-700">{m.content}</p>
                 </div>
               ))
             )}
@@ -168,12 +191,14 @@ function RideChat({ room }: { room: string }) {
               className="flex-1 border rounded-lg px-3 py-2 text-sm"
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Message…"
+              maxLength={360}
+              placeholder="Share a route tip, ride plan or question…"
               aria-label="Message"
             />
-            <Button type="submit" className="bg-red-600 hover:bg-red-700 px-4 py-2 text-sm">Send</Button>
+            <Button type="submit" disabled={!sessionId || !text.trim() || sending} className="bg-red-600 hover:bg-red-700 px-4 py-2 text-sm">{sending ? "Sending…" : "Send"}</Button>
           </form>
         </div>
+        <p className={`mt-3 min-h-5 text-sm ${status.includes("could not") || status.includes("unavailable") ? "text-red-700" : "text-neutral-600"}`}>{status}</p>
       </CardContent>
     </Card>
   );
@@ -949,17 +974,10 @@ export default function IRideMallorcaPage() {
 
       <section id="chat" className="py-16 md:py-24 bg-white">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-4">Ride Chat</h2>
+          <h2 className="text-3xl font-bold mb-4">Mallorca Cycling Community</h2>
           <div className="mt-1 h-1 w-20 bg-gradient-to-r from-red-500 to-yellow-400 rounded"></div>
-          <p className="text-neutral-600 mb-6">Choose a room to discuss routes and plan rides with other cyclists.</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <RideChat room="General" />
-            <RideChat room="Sa Calobra" />
-            <RideChat room="Formentor" />
-            <RideChat room="Calvia" />
-            <RideChat room="Soller" />
-            <RideChat room="Pollenca" />
-          </div>
+          <p className="max-w-3xl text-neutral-600 mb-6">Plan rides, exchange local route knowledge and meet fellow cyclists in one shared Mallorca conversation.</p>
+          <CommunityChat />
         </div>
       </section>
 
@@ -1009,7 +1027,7 @@ export default function IRideMallorcaPage() {
       <footer className="py-8 border-t bg-white">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-sm text-neutral-600">© {new Date().getFullYear()} I Ride Mallorca — <span className="italic">More than a Ride</span></div>
-          <nav aria-label="Footer navigation" className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-neutral-600"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About</a><a href="/legal/">Legal</a><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a><a href="/ordering/">Ordering &amp; returns</a></nav>
+          <nav aria-label="Footer navigation" className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-neutral-600"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About</a><a href="/legal/">Legal</a><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a><a href="/ordering/">Ordering &amp; returns</a><a href="/community-guidelines/">Community guidelines</a></nav>
         </div>
       </footer>
 
