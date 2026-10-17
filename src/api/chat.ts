@@ -5,7 +5,7 @@ export async function fetchCommunityMessages(limit = 100): Promise<CommunityMess
   return api(`/community/messages?limit=${encodeURIComponent(String(limit))}`);
 }
 
-export async function sendCommunityMessage(payload: { sessionId: string; content: string }): Promise<CommunityMessageDTO> {
+export async function sendCommunityMessage(payload: { sessionId: string; displayName: string; content: string; replyToId?: string | null }): Promise<CommunityMessageDTO> {
   return api("/community/messages", {
     method: "POST",
     body: JSON.stringify(payload),

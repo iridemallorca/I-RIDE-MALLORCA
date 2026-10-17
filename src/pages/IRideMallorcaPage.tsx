@@ -90,6 +90,7 @@ function loadLS<T>(key: string, fallback: T): T {
 function saveLS<T>(key: string, val: T) { try { localStorage.setItem(key, JSON.stringify(val)); } catch { } }
 
 const COMMUNITY_SESSION_KEY = "irm_community_session_v1";
+const COMMUNITY_NAME_KEY = "irm_community_name_v1";
 
 function communitySessionId() {
   const stored = loadLS<string>(COMMUNITY_SESSION_KEY, "");
@@ -101,16 +102,29 @@ function communitySessionId() {
   return id;
 }
 
+function defaultCommunityName(sessionId: string) {
+  return `Rider ${sessionId.slice(-4).toUpperCase()}`;
+}
+
+function communityDisplayName(sessionId: string) {
+  const stored = loadLS<string>(COMMUNITY_NAME_KEY, "").trim();
+  return stored || defaultCommunityName(sessionId);
+}
+
 function CommunityChat() {
   const [messages, setMessages] = useState<CommunityMessageDTO[]>([]);
   const [text, setText] = useState("");
   const [sessionId, setSessionId] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [replyingTo, setReplyingTo] = useState<CommunityMessageDTO | null>(null);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    setSessionId(communitySessionId());
+    const id = communitySessionId();
+    setSessionId(id);
+    setDisplayName(communityDisplayName(id));
     let alive = true;
 
     async function load() {
@@ -127,10 +141,10 @@ function CommunityChat() {
     }
 
     load();
-    const id = window.setInterval(load, 10000);
+    const refreshTimer = window.setInterval(load, 10000);
     return () => {
       alive = false;
-      window.clearInterval(id);
+      window.clearInterval(refreshTimer);
     };
   }, []);
 
@@ -140,15 +154,22 @@ function CommunityChat() {
     setSending(true);
 
     try {
-      const created = await sendCommunityMessage({ sessionId, content: text.trim() });
+      const created = await sendCommunityMessage({ sessionId, displayName: displayName.trim(), content: text.trim(), replyToId: replyingTo?.id || null });
+      if (replyingTo) created.replyTo = { id: replyingTo.id, user: replyingTo.user, content: replyingTo.content };
       setMessages((current) => [...current, created].slice(-100));
       setText("");
+      setReplyingTo(null);
       setStatus("Message shared with the community.");
     } catch (e: any) {
       setStatus(e?.message || "Your message could not be sent.");
     } finally {
       setSending(false);
     }
+  }
+
+  function updateDisplayName(value: string) {
+    setDisplayName(value);
+    saveLS(COMMUNITY_NAME_KEY, value.trim());
   }
 
   async function report(id: string) {
@@ -173,6 +194,10 @@ function CommunityChat() {
         <div className="mb-4 rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm leading-relaxed text-neutral-700">
           <strong className="text-neutral-900">Ride kindly and safely.</strong> This is a public community chat. Your browser is given a neutral rider name; do not share personal contact details, addresses, payment details or links. Spam, abuse and unsafe content are blocked or removed. <a className="font-semibold text-red-700 underline" href="/community-guidelines/">Read the community guidelines</a>.
         </div>
+        <label className="mb-4 block text-sm font-semibold text-neutral-800">Your rider name
+          <input className="mt-1 block w-full max-w-sm rounded-lg border px-3 py-2 font-normal" value={displayName} onChange={(event) => updateDisplayName(event.target.value)} maxLength={24} placeholder="Rider name" aria-label="Your rider name" />
+          <span className="mt-1 block text-xs font-normal text-neutral-500">Letters, numbers, spaces, hyphens and underscores only. Stored only in this browser.</span>
+        </label>
         <div className="h-[26rem] rounded-xl border bg-white overflow-hidden flex flex-col">
           <div className="flex-1 overflow-auto p-4 bg-neutral-50 text-sm" aria-live="polite">
             {loading ? <div className="text-neutral-500">Loading the conversation…</div> : messages.length === 0 ? (
@@ -180,12 +205,14 @@ function CommunityChat() {
             ) : (
               messages.map((m) => (
                 <div key={m.id} className="border-b border-neutral-200 py-3 last:border-0">
-                  <div className="flex items-baseline justify-between gap-3"><div><b className="text-neutral-800">{m.user}</b><span className="ml-2 text-xs text-neutral-400">{new Date(m.ts).toLocaleString()}</span></div><button type="button" onClick={() => report(m.id)} className="shrink-0 text-xs font-semibold text-red-700 underline">Report</button></div>
+                  <div className="flex items-baseline justify-between gap-3"><div><b className="text-neutral-800">{m.user}</b><span className="ml-2 text-xs text-neutral-400">{new Date(m.ts).toLocaleString()}</span></div><div className="flex shrink-0 gap-3"><button type="button" onClick={() => setReplyingTo(m)} className="text-xs font-semibold text-neutral-700 underline">Reply</button><button type="button" onClick={() => report(m.id)} className="text-xs font-semibold text-red-700 underline">Report</button></div></div>
+                  {m.replyTo && <div className="mt-2 rounded border-l-2 border-red-400 bg-red-50 px-3 py-2 text-xs text-neutral-600"><b>{m.replyTo.user}</b>: {m.replyTo.content}</div>}
                   <p className="mt-1 whitespace-pre-wrap break-words text-neutral-700">{m.content}</p>
                 </div>
               ))
             )}
           </div>
+          {replyingTo && <div className="border-t bg-yellow-50 px-3 py-2 text-xs text-neutral-700">Replying to <b>{replyingTo.user}</b>: {replyingTo.content.slice(0, 90)}{replyingTo.content.length > 90 ? "…" : ""}<button type="button" onClick={() => setReplyingTo(null)} className="ml-3 font-semibold text-red-700 underline">Cancel</button></div>}
           <form onSubmit={(e) => { e.preventDefault(); send(); }} className="border-t p-3 flex gap-2 bg-neutral-100">
             <input
               className="flex-1 border rounded-lg px-3 py-2 text-sm"

@@ -1,7 +1,13 @@
 export type Gender = "male" | "female";
 export type JerseySize = "XS" | "S" | "M" | "L" | "XL";
 
-export type CommunityMessageDTO = { id: string; user: string; content: string; ts: string };
+export type CommunityMessageDTO = {
+  id: string;
+  user: string;
+  content: string;
+  ts: string;
+  replyTo: null | { id: string; user: string; content: string };
+};
 
 export type TrackDTO = {
   id: string;

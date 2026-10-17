@@ -134,11 +134,13 @@ async function initialise() {
       session_id TEXT NOT NULL,
       display_name TEXT NOT NULL,
       content TEXT NOT NULL,
+      parent_id UUID REFERENCES community_messages(id) ON DELETE SET NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       hidden_at TIMESTAMPTZ,
       hidden_reason TEXT
     )
   `);
+  await pool.query(`ALTER TABLE community_messages ADD COLUMN IF NOT EXISTS parent_id UUID REFERENCES community_messages(id) ON DELETE SET NULL`);
   await pool.query(`CREATE INDEX IF NOT EXISTS community_messages_visible_created_idx ON community_messages (created_at DESC) WHERE hidden_at IS NULL`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS community_message_reports (
@@ -175,6 +177,14 @@ function validCommunitySession(value) {
 
 function riderName(sessionId) {
   return `Rider ${sessionId.slice(-4).toUpperCase()}`;
+}
+
+function cleanCommunityDisplayName(value, fallback) {
+  const name = String(value || "").normalize("NFKC").replace(/\s+/g, " ").trim().slice(0, 24);
+  if (!name) return fallback;
+  if (!/^[\p{L}][\p{L}\p{N} _-]{1,23}$/u.test(name)) return null;
+  if (communityBlockedPatterns.some((pattern) => pattern.test(name))) return null;
+  return name;
 }
 
 function takeCommunityMessageSlot(sessionId) {
@@ -272,17 +282,25 @@ app.get("/community/messages", async (req, res, next) => {
     const requested = Number(req.query.limit);
     const limit = Number.isFinite(requested) ? Math.min(Math.max(Math.trunc(requested), 1), 100) : 100;
     const { rows } = await pool.query(`
-      SELECT id, display_name, content, created_at
+      SELECT id, display_name, content, created_at, parent_id, parent_display_name, parent_content
       FROM (
-        SELECT id, display_name, content, created_at
-        FROM community_messages
-        WHERE hidden_at IS NULL
-        ORDER BY created_at DESC
+        SELECT message.id, message.display_name, message.content, message.created_at, message.parent_id,
+          parent.display_name AS parent_display_name, parent.content AS parent_content
+        FROM community_messages AS message
+        LEFT JOIN community_messages AS parent ON parent.id = message.parent_id AND parent.hidden_at IS NULL
+        WHERE message.hidden_at IS NULL
+        ORDER BY message.created_at DESC
         LIMIT $1
       ) AS recent_messages
       ORDER BY created_at ASC
     `, [limit]);
-    res.json(rows.map((message) => ({ id: message.id, user: message.display_name, content: message.content, ts: message.created_at })));
+    res.json(rows.map((message) => ({
+      id: message.id,
+      user: message.display_name,
+      content: message.content,
+      ts: message.created_at,
+      replyTo: message.parent_id && message.parent_display_name ? { id: message.parent_id, user: message.parent_display_name, content: message.parent_content } : null,
+    })));
   } catch (error) {
     next(error);
   }
@@ -292,12 +310,20 @@ app.post("/community/messages", async (req, res, next) => {
   try {
     const sessionId = String(req.body?.sessionId || "");
     const content = cleanCommunityText(req.body?.content);
+    const replyToId = req.body?.replyToId ? String(req.body.replyToId) : null;
+    const displayName = cleanCommunityDisplayName(req.body?.displayName, riderName(sessionId));
     if (!validCommunitySession(sessionId)) return res.status(400).json({ error: "Please refresh the page and try again." });
+    if (!displayName) return res.status(400).json({ error: "Choose a rider name using letters, numbers, spaces, hyphens or underscores only." });
     if (content.length < 2) return res.status(400).json({ error: "Please write a message of at least two characters." });
     if (communityBlockedPatterns.some((pattern) => pattern.test(content))) {
       return res.status(400).json({ error: "For everyone’s safety, messages cannot include links, contact details, spam or harmful language." });
     }
     if (!takeCommunityMessageSlot(sessionId)) return res.status(429).json({ error: "Please wait a moment before sending another message." });
+    if (replyToId && !/^[a-f0-9-]{36}$/i.test(replyToId)) return res.status(400).json({ error: "The message you are replying to is not valid." });
+    if (replyToId) {
+      const parent = await pool.query("SELECT 1 FROM community_messages WHERE id = $1 AND hidden_at IS NULL", [replyToId]);
+      if (!parent.rowCount) return res.status(400).json({ error: "That message is no longer available to reply to." });
+    }
 
     const duplicate = await pool.query(`
       SELECT 1 FROM community_messages
@@ -308,12 +334,12 @@ app.post("/community/messages", async (req, res, next) => {
 
     const id = crypto.randomUUID();
     const { rows } = await pool.query(`
-      INSERT INTO community_messages (id, session_id, display_name, content)
-      VALUES ($1, $2, $3, $4)
-      RETURNING id, display_name, content, created_at
-    `, [id, sessionId, riderName(sessionId), content]);
+      INSERT INTO community_messages (id, session_id, display_name, content, parent_id)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id, display_name, content, created_at, parent_id
+    `, [id, sessionId, displayName, content, replyToId]);
     const message = rows[0];
-    res.status(201).json({ id: message.id, user: message.display_name, content: message.content, ts: message.created_at });
+    res.status(201).json({ id: message.id, user: message.display_name, content: message.content, ts: message.created_at, replyTo: null });
   } catch (error) {
     next(error);
   }
