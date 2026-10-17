@@ -810,6 +810,20 @@ export default function IRideMallorcaPage() {
       source: "Mallorca Cycling Center route",
       sourceUrl: "https://www.mallorcacyclingcenter.com/en/route/9-orient/",
     },
+    {
+      name: "4 Ermitas — Mallorca Hermitage Loop",
+      facts: "105.5 km · approx. +2,836 m · central Mallorca loop",
+      gpx: "/routes/gpx/4-ermitas.gpx",
+      source: "Community GPX route",
+      sourceUrl: null,
+    },
+    {
+      name: "Ermites del Pla — Pla de Mallorca Loop",
+      facts: "138.7 km · approx. +1,811 m · Pla de Mallorca loop",
+      gpx: "/routes/gpx/ermites-del-pla.gpx",
+      source: "Community GPX route",
+      sourceUrl: null,
+    },
   ];
 
   const NAV_ITEMS = [
@@ -971,7 +985,7 @@ export default function IRideMallorcaPage() {
                   <div>
                     <h3 className="font-semibold text-neutral-900">{route.name}</h3>
                     <p className="mt-1 text-sm text-neutral-600">{route.facts}</p>
-                    <a href={route.sourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-neutral-500 underline underline-offset-2">Source: {route.source}</a>
+                    {route.sourceUrl ? <a href={route.sourceUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-neutral-500 underline underline-offset-2">Source: {route.source}</a> : <span className="mt-2 inline-block text-xs text-neutral-500">Source: {route.source}</span>}
                   </div>
                   <a href={route.gpx} download className="inline-flex shrink-0 items-center justify-center rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Download GPX</a>
                 </li>
