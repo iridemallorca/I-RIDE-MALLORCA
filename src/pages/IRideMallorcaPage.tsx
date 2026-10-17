@@ -21,6 +21,24 @@ import { routeGuides, products } from "@/data/content";
 
 const LOGO = "/IRIDEMALLORCA_LOGO.jpg";
 
+function FacebookIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+      <path d="M13.5 22v-8h2.75l.41-3.2H13.5V8.76c0-.93.26-1.56 1.59-1.56h1.7V4.34c-.29-.04-1.29-.13-2.45-.13-2.42 0-4.08 1.48-4.08 4.2v2.39H7.5V14h2.76v8h3.24Z" />
+    </svg>
+  );
+}
+
+function InstagramIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.3" cy="6.7" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 type PartnerTrack = { fileUrl: string; distanceKm: number; elevationGainM: number; svgPath?: string };
 type PartnerPost = { id: string; name: string; whenISO: string; address: string; pace?: number; note?: string; track?: PartnerTrack | null };
 
@@ -811,13 +829,23 @@ export default function IRideMallorcaPage() {
             <img src={LOGO} alt="I Ride Mallorca logo" className="h-10 w-10 object-contain rounded-md shadow-sm" />
             <span className="font-bold tracking-wide">I Ride Mallorca - More than a Ride</span>
           </div>
-          <nav aria-label="Main navigation" className="hidden md:flex items-center gap-2 text-sm">
-            {NAV_ITEMS.map((it) => (
-              <a key={it.href} href={it.href} className={`px-3 py-2 rounded-md border border-transparent transition-all duration-200 ${it.hover}`}>
-                {it.label}
+          <div className="flex items-center gap-2">
+            <nav aria-label="Main navigation" className="hidden md:flex items-center gap-2 text-sm">
+              {NAV_ITEMS.map((it) => (
+                <a key={it.href} href={it.href} className={`px-3 py-2 rounded-md border border-transparent transition-all duration-200 ${it.hover}`}>
+                  {it.label}
+                </a>
+              ))}
+            </nav>
+            <div className="flex items-center gap-1 border-l border-neutral-200 pl-2">
+              <a href="https://www.facebook.com/i.ride.mallorca" target="_blank" rel="noreferrer" className="rounded-md p-2 text-neutral-700 transition hover:bg-red-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500" aria-label="Follow I Ride Mallorca on Facebook" title="Facebook">
+                <FacebookIcon />
               </a>
-            ))}
-          </nav>
+              <a href="https://www.instagram.com/iridemallorca/" target="_blank" rel="noreferrer" className="rounded-md p-2 text-neutral-700 transition hover:bg-red-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500" aria-label="Follow I Ride Mallorca on Instagram" title="Instagram">
+                <InstagramIcon />
+              </a>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -1048,14 +1076,7 @@ export default function IRideMallorcaPage() {
       <footer className="py-8 border-t bg-white">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-sm text-neutral-600">© {new Date().getFullYear()} I Ride Mallorca — <span className="italic">More than a Ride</span></div>
-          <div className="flex flex-col items-center gap-3 md:items-end">
-            <nav aria-label="Footer navigation" className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-neutral-600"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About</a><a href="/legal/">Legal</a><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a><a href="/ordering/">Ordering &amp; returns</a><a href="/community-guidelines/">Community guidelines</a></nav>
-            <div className="flex items-center gap-3 text-sm font-medium text-neutral-700">
-              <span>Follow I Ride Mallorca</span>
-              <a href="https://www.facebook.com/i.ride.mallorca" target="_blank" rel="noreferrer" className="rounded-full border border-neutral-300 px-3 py-1.5 transition hover:border-red-600 hover:text-red-700" aria-label="Follow I Ride Mallorca on Facebook">Facebook</a>
-              <a href="https://www.instagram.com/iridemallorca/" target="_blank" rel="noreferrer" className="rounded-full border border-neutral-300 px-3 py-1.5 transition hover:border-red-600 hover:text-red-700" aria-label="Follow I Ride Mallorca on Instagram">Instagram</a>
-            </div>
-          </div>
+          <nav aria-label="Footer navigation" className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-neutral-600"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About</a><a href="/legal/">Legal</a><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a><a href="/ordering/">Ordering &amp; returns</a><a href="/community-guidelines/">Community guidelines</a></nav>
         </div>
       </footer>
 
