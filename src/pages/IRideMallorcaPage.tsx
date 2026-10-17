@@ -874,15 +874,15 @@ export default function IRideMallorcaPage() {
             </h1>
             <p className="mt-6 text-lg text-neutral-700">Discover Mallorca through a growing community of cyclists. Explore iconic and community-shared road cycling routes, view route maps, download free GPX files or upload your own, and use the community chat and Partner Finder to meet riders and plan your next ride. Sign up for route updates, get in touch with us, and order an I Ride Mallorca cycling jersey to take the island’s memories home.</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button className="bg-red-600 hover:bg-red-700"
+              <Button className="bg-red-600 transition-colors duration-200 hover:bg-red-700 hover:text-white"
                 onClick={() => document.getElementById('routes')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
                 Choose Your Route
               </Button>
-              <Button variant="outline" className="border-yellow-400 text-yellow-700 hover:bg-yellow-50"
+              <Button variant="outline" className="border-yellow-400 text-yellow-700 transition-colors duration-200 hover:bg-yellow-400 hover:text-neutral-900"
                 onClick={() => document.getElementById('jersey')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
                 Choose Your Jersey
               </Button>
-              <Button variant="outline" className="border-red-300 text-red-700 hover:bg-red-50"
+              <Button variant="outline" className="border-red-300 text-red-700 transition-colors duration-200 hover:bg-red-100 hover:text-red-800"
                 onClick={() => document.getElementById('partners')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
                 Find Ride Buddies
               </Button>
