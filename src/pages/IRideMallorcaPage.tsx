@@ -830,7 +830,7 @@ export default function IRideMallorcaPage() {
     { label: "Routes", href: "#routes", hover: "hover:bg-red-500 hover:text-white" },
     { label: "Jersey", href: "#jersey", hover: "hover:bg-yellow-400 hover:text-neutral-900" },
     { label: "Chat", href: "#chat", hover: "hover:bg-red-500 hover:text-white" },
-    { label: "Partners", href: "#partners", hover: "hover:bg-yellow-400 hover:text-neutral-900" },
+    { label: "Rides", href: "#partners", hover: "hover:bg-yellow-400 hover:text-neutral-900" },
     { label: "Tracks", href: "#tracks", hover: "hover:bg-red-500 hover:text-white" },
     { label: "Contact", href: "#contact", hover: "hover:bg-yellow-400 hover:text-neutral-900" }
   ];
