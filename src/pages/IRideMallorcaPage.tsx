@@ -434,6 +434,8 @@ function PartnerFinder() {
   const [posts, setPosts] = useState<PartnerPost[]>([]);
   const [showPicker, setShowPicker] = useState(false);
   const [whenLocal, setWhenLocal] = useState("");
+  const [postError, setPostError] = useState("");
+  const [posting, setPosting] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -468,53 +470,35 @@ function PartnerFinder() {
 
   const now = new Date();
   const upcoming = posts
-    .filter(p => !isExpired(p.whenISO) && new Date(p.whenISO) >= now)
+    .filter(p => !isExpired(p.whenISO))
     .sort((a, b) => new Date(a.whenISO).getTime() - new Date(b.whenISO).getTime());
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
+    if (posting) return;
     const form = e.target as HTMLFormElement;
     const f = new FormData(form);
-
-    const file = f.get("track") as File | null;
-    let trackId: string | null = null;
-    let localTrackPreview: PartnerTrack | null = null;
-
-    if (file && file.size) {
-      const parsed = await parseGPX(file);
-      const [minLat, minLon, maxLat, maxLon] = parsed.bbox;
-      const w = 600, h = 300;
-
-      const svgPath = parsed.coords.map(([lat, lon]) => {
-        const x = ((lon - minLon) / (maxLon - minLon || 1)) * w;
-        const y = h - ((lat - minLat) / (maxLat - minLat || 1)) * h;
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-      }).join(" ");
-
-      const up = await uploadGpx(file);
-
-      const createdTrack: TrackDTO = await createTrack({
-        title: file.name.replace(/\.(gpx|tcx)$/i, ""),
-        storageUrl: `${gpxApiBase()}${up.downloadUrl}`,
-        distanceKm: parsed.distanceKm,
-        elevationGainM: parsed.elevationGainM,
-        svgPath,
-      });
-
-      trackId = createdTrack.id;
-
-      localTrackPreview = {
-        fileUrl: createdTrack.storageUrl || "",
-        distanceKm: createdTrack.distanceKm,
-        elevationGainM: createdTrack.elevationGainM,
-        svgPath: createdTrack.svgPath || svgPath,
-      };
-    }
-
-    const whenISO = whenLocal || String(f.get("when"));
-    const paceVal = Number(f.get("pace") || NaN);
+    setPostError("");
+    setPosting(true);
 
     try {
+      const file = f.get("track") as File | null;
+      let trackId: string | null = null;
+      let localTrackPreview: PartnerTrack | null = null;
+      if (file && file.size) {
+        if (!/\.gpx$/i.test(file.name)) throw new Error("Please choose a GPX file (.gpx).");
+        if (file.size > 10 * 1024 * 1024) throw new Error("The GPX file must be smaller than 10 MB.");
+        const parsed = await parseGPX(file);
+        const [minLat, minLon, maxLat, maxLon] = parsed.bbox;
+        const w = 600, h = 300;
+        const svgPath = parsed.coords.map(([lat, lon]) => `${(((lon - minLon) / (maxLon - minLon || 1)) * w).toFixed(1)},${(h - ((lat - minLat) / (maxLat - minLat || 1)) * h).toFixed(1)}`).join(" ");
+        const up = await uploadGpx(file);
+        const createdTrack: TrackDTO = await createTrack({ title: file.name.replace(/\.(gpx|tcx)$/i, ""), storageUrl: `${gpxApiBase()}${up.downloadUrl}`, distanceKm: parsed.distanceKm, elevationGainM: parsed.elevationGainM, svgPath });
+        trackId = createdTrack.id;
+        localTrackPreview = { fileUrl: createdTrack.storageUrl || "", distanceKm: createdTrack.distanceKm, elevationGainM: createdTrack.elevationGainM, svgPath: createdTrack.svgPath || svgPath };
+      }
+      const whenISO = whenLocal || String(f.get("when"));
+      const paceVal = Number(f.get("pace") || NaN);
       const createdPost = await createPartnerPost({
         name: String(f.get("name") || "Rider"),
         whenISO,
@@ -544,7 +528,9 @@ function PartnerFinder() {
       setWhenLocal("");
       setShowPicker(false);
     } catch (err: any) {
-      alert(err?.message || "Failed to post");
+      setPostError(err?.message || "Your ride could not be posted. Please try again.");
+    } finally {
+      setPosting(false);
     }
   }
 
@@ -561,7 +547,7 @@ function PartnerFinder() {
             </div>
             <div className="md:col-span-2">
               {!showPicker ? (
-                <input type="text" placeholder="Start time (yyyy-mm-dd hh:mm)" className="w-full border rounded-xl px-3 py-2" onFocus={() => setShowPicker(true)} />
+                <input type="text" placeholder="Start time in Mallorca (yyyy-mm-dd hh:mm)" className="w-full border rounded-xl px-3 py-2" onFocus={() => setShowPicker(true)} />
               ) : (
                 <input name="when" type="datetime-local" lang="en-GB" step={60} className="w-full border rounded-xl px-3 py-2" value={whenLocal} onChange={(e) => setWhenLocal(e.target.value)} required />
               )}
@@ -575,7 +561,8 @@ function PartnerFinder() {
               </div>
               <span className="text-xs text-neutral-500 block mt-1">Your route preview will appear once you publish your ride.</span>
             </div>
-            <Button type="submit" className="bg-red-600 hover:bg-red-700 md:col-span-2">Post</Button>
+            {postError && <p className="md:col-span-2 text-sm text-red-700" role="alert">{postError}</p>}
+            <Button type="submit" disabled={posting} className="bg-red-600 hover:bg-red-700 md:col-span-2">{posting ? "Posting…" : "Post"}</Button>
           </form>
         </CardContent>
       </Card>

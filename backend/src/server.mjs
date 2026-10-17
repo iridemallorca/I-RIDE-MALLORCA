@@ -140,6 +140,19 @@ async function initialise() {
       hidden_reason TEXT
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS partner_posts (
+      id UUID PRIMARY KEY,
+      rider_name TEXT NOT NULL,
+      starts_at TIMESTAMPTZ NOT NULL,
+      start_address TEXT,
+      pace DOUBLE PRECISION,
+      note TEXT,
+      track_id UUID REFERENCES tracks(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS partner_posts_starts_at_idx ON partner_posts (starts_at ASC)`);
   await pool.query(`ALTER TABLE community_messages ADD COLUMN IF NOT EXISTS parent_id UUID REFERENCES community_messages(id) ON DELETE SET NULL`);
   await pool.query(`CREATE INDEX IF NOT EXISTS community_messages_visible_created_idx ON community_messages (created_at DESC) WHERE hidden_at IS NULL`);
   await pool.query(`
@@ -231,6 +244,26 @@ async function sendOrderNotification(order) {
   });
 }
 
+async function sendCommunityModerationNotification(message, reportCount) {
+  if (!mailer) return;
+
+  await mailer.sendMail({
+    from: mailFrom,
+    to: ownerEmail,
+    subject: "I Ride Mallorca community message automatically hidden",
+    text: [
+      "A community message reached the automatic moderation threshold and is now hidden.",
+      "",
+      `Message ID: ${message.id}`,
+      `Rider name: ${message.display_name}`,
+      `Reports: ${reportCount}`,
+      "",
+      "Message:",
+      message.content,
+    ].join("\n"),
+  });
+}
+
 app.post("/orders", async (req, res, next) => {
   try {
     const body = req.body || {};
@@ -272,6 +305,104 @@ app.post("/orders", async (req, res, next) => {
     ]);
 
     res.status(201).json({ id, message: "Order request received." });
+  } catch (error) {
+    next(error);
+  }
+});
+
+function cleanPartnerText(value, limit) {
+  return String(value || "").normalize("NFKC").replace(/\s+/g, " ").trim().slice(0, limit);
+}
+
+function madridCalendarDay(date) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Madrid",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function partnerPostDto(row, req) {
+  const track = row.track_id ? {
+    id: row.track_id,
+    title: row.track_title,
+    storageUrl: publicDownloadUrl(req, row.track_blob_name),
+    distanceKm: row.track_distance_km,
+    elevationGainM: row.track_elevation_gain_m,
+    svgPath: row.track_svg_path,
+    createdAt: row.track_created_at,
+  } : null;
+  return {
+    id: row.id,
+    name: row.rider_name,
+    when: row.starts_at,
+    address: row.start_address,
+    pace: row.pace,
+    note: row.note,
+    track,
+  };
+}
+
+app.get("/partners", async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT partner.id, partner.rider_name, partner.starts_at, partner.start_address, partner.pace, partner.note,
+        track.id AS track_id, track.title AS track_title, track.blob_name AS track_blob_name,
+        track.distance_km AS track_distance_km, track.elevation_gain_m AS track_elevation_gain_m,
+        track.svg_path AS track_svg_path, track.created_at AS track_created_at
+      FROM partner_posts AS partner
+      LEFT JOIN tracks AS track ON track.id = partner.track_id
+      WHERE partner.starts_at >= (date_trunc('day', NOW() AT TIME ZONE 'Europe/Madrid') AT TIME ZONE 'Europe/Madrid')
+      ORDER BY partner.starts_at ASC
+      LIMIT 100
+    `);
+    res.json(rows.map((post) => partnerPostDto(post, req)));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/partners", async (req, res, next) => {
+  try {
+    const body = req.body || {};
+    const name = cleanPartnerText(body.name, 80);
+    const address = cleanPartnerText(body.address, 240) || null;
+    const note = cleanPartnerText(body.note, 600) || null;
+    const startsAt = new Date(body.whenISO);
+    const pace = body.pace === undefined || body.pace === null || body.pace === "" ? null : Number(body.pace);
+    const trackId = body.trackId ? String(body.trackId) : null;
+
+    if (!name || name.length < 2 || !Number.isFinite(startsAt.getTime()) || (pace !== null && (!Number.isFinite(pace) || pace < 5 || pace > 60))) {
+      return res.status(400).json({ error: "Please add a name, a valid future ride date and a pace between 5 and 60 km/h." });
+    }
+    const madridToday = madridCalendarDay(new Date());
+    const rideDay = madridCalendarDay(startsAt);
+    if (rideDay < madridToday) return res.status(400).json({ error: "Please choose today or a future date for the ride." });
+    if (trackId && !/^[a-f0-9-]{36}$/i.test(trackId)) return res.status(400).json({ error: "The selected GPX track is not valid." });
+    if (trackId) {
+      const found = await pool.query("SELECT 1 FROM tracks WHERE id = $1", [trackId]);
+      if (!found.rowCount) return res.status(400).json({ error: "The uploaded GPX track could not be found. Please upload it again." });
+    }
+
+    const id = crypto.randomUUID();
+    const { rows } = await pool.query(`
+      INSERT INTO partner_posts (id, rider_name, starts_at, start_address, pace, note, track_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id, rider_name, starts_at, start_address, pace, note, track_id
+    `, [id, name, startsAt.toISOString(), address, pace, note, trackId]);
+    const created = rows[0];
+    if (trackId) {
+      const trackResult = await pool.query("SELECT id, title, blob_name, distance_km, elevation_gain_m, svg_path, created_at FROM tracks WHERE id = $1", [trackId]);
+      const track = trackResult.rows[0];
+      Object.assign(created, {
+        track_title: track.title, track_blob_name: track.blob_name, track_distance_km: track.distance_km,
+        track_elevation_gain_m: track.elevation_gain_m, track_svg_path: track.svg_path, track_created_at: track.created_at,
+      });
+    }
+    res.status(201).json(partnerPostDto(created, req));
   } catch (error) {
     next(error);
   }
@@ -365,7 +496,22 @@ app.post("/community/messages/:id/report", async (req, res, next) => {
     const countResult = await pool.query("SELECT COUNT(*)::int AS count FROM community_message_reports WHERE message_id = $1", [messageId]);
     const reportCount = countResult.rows[0].count;
     const hidden = reportCount >= 3;
-    if (hidden) await pool.query("UPDATE community_messages SET hidden_at = COALESCE(hidden_at, NOW()), hidden_reason = COALESCE(hidden_reason, 'Community reports') WHERE id = $1", [messageId]);
+    if (hidden) {
+      const moderated = await pool.query(`
+        UPDATE community_messages
+        SET hidden_at = NOW(), hidden_reason = 'Community reports'
+        WHERE id = $1 AND hidden_at IS NULL
+        RETURNING id, display_name, content
+      `, [messageId]);
+      if (moderated.rowCount) {
+        try {
+          await sendCommunityModerationNotification(moderated.rows[0], reportCount);
+        } catch (mailError) {
+          // Moderation must still succeed even if the internal notification cannot be sent.
+          console.error("Community moderation email could not be sent", mailError);
+        }
+      }
+    }
     res.status(201).json({ hidden, reportCount });
   } catch (error) {
     next(error);

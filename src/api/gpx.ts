@@ -1,6 +1,6 @@
-export const GPX_API_BASE =
-  (import.meta as any).env?.VITE_GPX_API_URL ||
-  "/gpx-api";
+// Keep uploads on the I Ride Mallorca origin. Netlify proxies this path to
+// Azure, avoiding browser CORS failures when a rider adds a planned route.
+export const GPX_API_BASE = "/gpx-api";
 
 export function gpxApiBase() {
   return GPX_API_BASE.replace(/\/$/, "");
@@ -19,8 +19,9 @@ export async function uploadGpx(file: File): Promise<UploadGpxResponse> {
   });
 
   if (!res.ok) {
-    const txt = await res.text();
-    throw new Error(txt || `HTTP ${res.status}`);
+    let message = `HTTP ${res.status}`;
+    try { message = (await res.json())?.error || message; } catch {}
+    throw new Error(message);
   }
 
   return res.json();
