@@ -872,8 +872,8 @@ export default function IRideMallorcaPage() {
               Mallorca Cycling Routes &amp; Jerseys
               <span className="block text-neutral-700 text-2xl md:text-3xl mt-2 font-semibold">More than a Ride</span>
             </h1>
-            <p className="mt-6 text-lg text-neutral-700">Explore six Mallorca road cycling routes with GPX downloads, route maps and practical planning notes. Discover Sa Calobra, Cap de Formentor and the Serra de Tramuntana, then take the memories home with an I Ride Mallorca cycling jersey.</p>
-            <div className="mt-8 flex gap-3">
+            <p className="mt-6 text-lg text-neutral-700">Discover Mallorca through a growing community of cyclists. Explore iconic and community-shared road cycling routes, view route maps, download free GPX files or upload your own, and use the community chat and Partner Finder to meet riders and plan your next ride. Sign up for route updates, get in touch with us, and order an I Ride Mallorca cycling jersey to take the island’s memories home.</p>
+            <div className="mt-8 flex flex-wrap gap-3">
               <Button className="bg-red-600 hover:bg-red-700"
                 onClick={() => document.getElementById('routes')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
                 Choose Your Route
@@ -881,6 +881,10 @@ export default function IRideMallorcaPage() {
               <Button variant="outline" className="border-yellow-400 text-yellow-700 hover:bg-yellow-50"
                 onClick={() => document.getElementById('jersey')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
                 Choose Your Jersey
+              </Button>
+              <Button variant="outline" className="border-red-300 text-red-700 hover:bg-red-50"
+                onClick={() => document.getElementById('partners')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+                Find Ride Buddies
               </Button>
             </div>
           </div>
