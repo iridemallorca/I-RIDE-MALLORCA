@@ -33,7 +33,9 @@ export default function HomepageHeader({ home = false }: { home?: boolean }) {
       <header className="sticky top-0 z-40 backdrop-blur bg-white/70 border-b border-neutral-200">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/IRIDEMALLORCA_LOGO.jpg" alt="I Ride Mallorca logo" className="h-10 w-10 object-contain rounded-md shadow-sm" />
+            <a href="/" aria-label="I Ride Mallorca home" className="rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600">
+              <img src="/IRIDEMALLORCA_LOGO.jpg" alt="" className="h-10 w-10 object-contain rounded-md shadow-sm" />
+            </a>
             <span className="font-bold tracking-wide">I Ride Mallorca - More than a Ride</span>
           </div>
           <div className="flex items-center gap-2">
