@@ -59,7 +59,7 @@ export const guidePlaces = [
   place('Tolo’s Restaurant', 'Port de Pollença', 'North', [coffee], 'Cycling-themed seafront restaurant for a meal or coffee before or after a Formentor ride.', 'https://tolosrestaurant.com/en/cycling/'),
   place('Holibikes Tours & Coffee', 'Port de Pollença', 'North', [coffee], 'Coffee, breakfast and ride snacks on the road out towards Formentor.', 'https://coffeeridemallorca.com/stops/holibikes-port-de-pollenca'),
   place('La Molienda Pollença', 'Pollença', 'North', [coffee], 'Specialty coffee and brunch in Pollença town.', 'https://lamolienda.es/es/coffeeshops/pollenca/'),
-  place('Pinarello Experience', 'Port de Pollença', 'North', [hire], 'Pinarello road and electric road bikes. Check the minimum hire period before booking.', 'https://www.pinarelloexperience.com/prices'),
+  place('Pinarello Experience', 'Port de Pollença', 'North', [hire], 'Pinarello road and electric road bikes. Check the minimum hire period before booking.', 'https://www.pinarelloexperience.com/'),
   place('Rent March', 'Port de Pollença', 'North', [hire], 'Local bike hire and online reservations in the port.', 'https://rentmarch.com/'),
   place('Pro Cycle Hire & Café', 'Port de Pollença', 'North', [hire, coffee], 'Performance bike hire and a cycling coffee stop on Carrer Corb Marí.', 'https://m.mallorcacomercial.es/en/empresa/4752/'),
   place('Bike Experience Mallorca', 'Port de Pollença', 'North', [hire, shops], 'Rental pickup, cycling accessories and repairs at the Port de Pollença shop.', 'https://www.bikeexperiencemallorca.com/en'),
