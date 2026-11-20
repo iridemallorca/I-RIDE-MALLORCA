@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
-import { render, routeGuides, products, origin, routePath, productPath } from '../.prerender/entry-server.js';
+import { render, routeGuides, products, origin, routePath, productPath, cyclingGuidePath, guideCategories, guideCategoryPath } from '../.prerender/entry-server.js';
 const template = await readFile('dist/index.html', 'utf8');
 const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const organization = {'@type':'Organization','@id':`${origin}/#organization`,name:'I Ride Mallorca',url:`${origin}/`,logo:`${origin}/IRIDEMALLORCA_LOGO.jpg`};
@@ -10,6 +10,8 @@ const pages = [
  {path:'/routes/',title:'Mallorca Cycling Routes & GPX Downloads | I Ride Mallorca',description:'Compare six Mallorca road cycling routes, including Sa Calobra, Formentor and Puig Major. Find GPX downloads, maps, route types and practical ride notes.'},
  {path:'/jerseys/',title:'Mallorca Cycling Jerseys: Sunset, Pink & White | I Ride Mallorca',description:'Explore the I Ride Mallorca cycling jersey collection: Sunset at €64.50, Pink and White at €87.90. See front and back images, sizing and order information.'},
  {path:'/about/',title:'About I Ride Mallorca & Our Route Information',description:'Learn about I Ride Mallorca, how GPX route distances and climbing figures are calculated, file limitations and where to find cycling jersey information.'},
+ {path:cyclingGuidePath,title:'Mallorca Cycling Guide: Cafés, Bike Hire & Repairs | I Ride Mallorca',description:'Explore cycling cafés, bike hire and repair shops across Mallorca. Search by town or service and filter by area.'},
+ ...guideCategories.map(category=>({path:guideCategoryPath(category.slug),title:`Mallorca ${category.label} | I Ride Mallorca`,description:category.description})),
  {path:'/legal/',title:'Legal Information | I Ride Mallorca',description:'Brand owner and legal information for I Ride Mallorca.',noindex:true},
  {path:'/privacy/',title:'Privacy Notice | I Ride Mallorca',description:'How I Ride Mallorca handles personal data for website enquiries and jersey order requests.',noindex:true},
  {path:'/cookies/',title:'Cookie Notice | I Ride Mallorca',description:'Cookie and local storage information for I Ride Mallorca.',noindex:true},

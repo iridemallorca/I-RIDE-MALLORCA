@@ -1,3 +1,4 @@
+import CyclingGuideMenu from '@/components/CyclingGuideMenu';
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -844,12 +845,13 @@ export default function IRideMallorcaPage() {
             <span className="font-bold tracking-wide">I Ride Mallorca - More than a Ride</span>
           </div>
           <div className="flex items-center gap-2">
-            <nav aria-label="Main navigation" className="hidden md:flex items-center gap-2 text-sm">
+            <nav aria-label="Main navigation" className="hidden md:flex flex-wrap items-center justify-end gap-1 text-sm">
               {NAV_ITEMS.map((it) => (
                 <a key={it.href} href={it.href} className={`px-3 py-2 rounded-md border border-transparent transition-all duration-200 ${it.hover}`}>
                   {it.label}
                 </a>
               ))}
+              <CyclingGuideMenu />
             </nav>
             <div className="flex items-center gap-1 border-l border-neutral-200 pl-2">
               <a href="https://www.facebook.com/i.ride.mallorca" target="_blank" rel="noreferrer" className="rounded-md p-2 text-neutral-700 transition hover:bg-red-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500" aria-label="Follow I Ride Mallorca on Facebook" title="Facebook">
@@ -863,7 +865,7 @@ export default function IRideMallorcaPage() {
         </div>
       </header>
 
-      <nav aria-label="Mobile navigation" className="flex flex-wrap gap-5 border-b bg-white px-4 py-3 text-sm font-medium md:hidden"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About</a></nav>
+      <nav aria-label="Mobile navigation" className="relative z-30 flex flex-wrap items-center gap-x-4 gap-y-1 border-b bg-white px-4 py-2 text-sm font-medium md:hidden"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About</a><CyclingGuideMenu /></nav>
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10 opacity-10 bg-[radial-gradient(80%_60%_at_50%_10%,#ef4444,transparent),radial-gradient(60%_40%_at_80%_70%,#f59e0b,transparent)]" />
         <div className="max-w-6xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-10 items-center">
@@ -1094,7 +1096,7 @@ export default function IRideMallorcaPage() {
       <footer className="py-8 border-t bg-white">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-sm text-neutral-600">© {new Date().getFullYear()} I Ride Mallorca — <span className="italic">More than a Ride</span></div>
-          <nav aria-label="Footer navigation" className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-neutral-600"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About</a><a href="/legal/">Legal</a><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a><a href="/ordering/">Ordering &amp; returns</a><a href="/community-guidelines/">Community guidelines</a></nav>
+          <nav aria-label="Footer navigation" className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-neutral-600"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About</a><a href="/cycling-guide/">Cycling Guide</a><a href="/legal/">Legal</a><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a><a href="/ordering/">Ordering &amp; returns</a><a href="/community-guidelines/">Community guidelines</a></nav>
         </div>
       </footer>
 

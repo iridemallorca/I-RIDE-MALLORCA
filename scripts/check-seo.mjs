@@ -4,7 +4,9 @@ import { resolve } from 'node:path';
 const origin = 'https://www.iridemallorca.com';
 const sitemap=await readFile('dist/sitemap.xml','utf8');
 const urls=[...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(m=>m[1]);
-assert.equal(urls.length,13,'Expected home, route/jersey hubs, six routes, three products and about');
+const guidePaths = ['/cycling-guide/', '/cycling-guide/coffee-stops/', '/cycling-guide/bike-hire/', '/cycling-guide/bike-shops-repairs/'];
+assert.equal(urls.length,17,'Expected home, route/jersey hubs, six routes, three products, about and four cycling guide pages');
+for (const path of guidePaths) assert.ok(urls.includes(origin + path), `Missing guide page ${path}`);
 const titles=new Set(), descriptions=new Set();
 for(const url of urls){
  const path=new URL(url).pathname;
