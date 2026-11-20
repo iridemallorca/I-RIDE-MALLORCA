@@ -1,5 +1,6 @@
 import CyclingDirectory from '@/components/CyclingDirectory';
 import CyclingGuideMenu from '@/components/CyclingGuideMenu';
+import HomepageHeader from '@/components/HomepageHeader';
 import { cyclingGuidePath, guideCategories, guideCategoryPath } from '@/data/cycling-guide';
 import { useState } from 'react';
 import { routeGuides, products, routePath, productPath, faq } from '@/data/content';
@@ -8,9 +9,11 @@ import RouteMap from '@/components/RouteMap';
 import { OrderFormModal, SizeGuideModal } from './IRideMallorcaPage';
 import { LegalPage } from './LegalPages';
 
-function Shell({ children }: { children: React.ReactNode }) {
+function Shell({ children, useHomepageHeader = false }: { children: React.ReactNode; useHomepageHeader?: boolean }) {
   return <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-red-50 text-neutral-900">
-    <header className="relative z-30 border-b bg-white"><nav aria-label="Main navigation" className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-5"><a href="/" className="flex items-center gap-3 font-bold"><img src="/IRIDEMALLORCA_LOGO.jpg" alt="" width="44" height="44" />I Ride Mallorca</a><div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About</a><a href="/#contact">Contact</a><CyclingGuideMenu /></div></nav></header>
+    {useHomepageHeader ? <HomepageHeader /> : (
+      <header className="relative z-30 border-b bg-white"><nav aria-label="Main navigation" className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-5"><a href="/" className="flex items-center gap-3 font-bold"><img src="/IRIDEMALLORCA_LOGO.jpg" alt="" width="44" height="44" />I Ride Mallorca</a><div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm"><a href="/routes/">Cycling routes</a><a href="/jerseys/">Cycling jerseys</a><a href="/about/">About</a><a href="/#contact">Contact</a><CyclingGuideMenu /></div></nav></header>
+    )}
     <main className="mx-auto max-w-6xl px-4 py-10 md:py-16">{children}</main>
     <footer className="border-t bg-white"><div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-4 px-4 py-8 text-sm text-neutral-600"><p>© {new Date().getFullYear()} I Ride Mallorca — More than a Ride</p><nav aria-label="Footer navigation" className="flex flex-wrap gap-x-4 gap-y-2"><a href="/routes/">Routes</a><a href="/jerseys/">Jerseys</a><a href="/about/">About</a><a href={cyclingGuidePath}>Cycling Guide</a><a href="/legal/">Legal</a><a href="/privacy/">Privacy</a><a href="/cookies/">Cookies</a><a href="/ordering/">Ordering &amp; returns</a><a href="/community-guidelines/">Community guidelines</a></nav></div></footer>
   </div>;
@@ -32,7 +35,7 @@ export default function GuidePage({ path }: { path: string }) {
   const product = products.find(p => productPath(p.slug) === path);
   const directoryCategory = guideCategories.find(category => guideCategoryPath(category.slug) === path);
   if (path === cyclingGuidePath || directoryCategory) {
-    return <Shell><CyclingDirectory category={directoryCategory?.slug} /></Shell>;
+    return <Shell useHomepageHeader><CyclingDirectory category={directoryCategory?.slug} /></Shell>;
   }
   if (['/legal/', '/privacy/', '/cookies/', '/ordering/', '/community-guidelines/'].includes(path)) return <Shell><LegalPage path={path} /></Shell>;
   if (route) return <Shell><Crumbs section="routes" name={route.name} /><article>
