@@ -629,8 +629,16 @@ app.get("/tracks", async (req, res, next) => {
     const { rows } = await pool.query(`
       SELECT id, title, blob_name, distance_km, elevation_gain_m, svg_path, created_at
       FROM tracks
+      WHERE id <> ALL($1::uuid[])
       ORDER BY created_at DESC
-    `);
+    `, [
+      // Track Share received two byte-identical reuploads of the original Around Calvia GPX.
+      // Keep their existing download URLs and references working.
+      [
+        "b9a9b450-a0a3-47ae-b58c-cab09b2d39d7",
+        "1c563a6d-193b-4f5b-b9c9-36a52ca55caa",
+      ],
+    ]);
     res.json(rows.map((track) => ({
       id: track.id,
       title: track.title,
